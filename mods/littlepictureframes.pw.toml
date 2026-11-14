@@ -1,0 +1,13 @@
+name = "LittlePictureFrames"
+filename = "LittleFrames_NEOFORGE_v1.4.8_mc1.21.1.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/V7pmsAKw/versions/I8ZQS6iJ/LittleFrames_NEOFORGE_v1.4.8_mc1.21.1.jar"
+hash-format = "sha512"
+hash = "6df36e86205523d8cbd3faa16ce629775067e63aca13f49e4a7d6cb50f4bce40ede5e98b33e7c417e5b73862e5a71b192f04b1b7925bae348159a0fe70929b11"
+
+[update]
+[update.modrinth]
+mod-id = "V7pmsAKw"
+version = "I8ZQS6iJ"

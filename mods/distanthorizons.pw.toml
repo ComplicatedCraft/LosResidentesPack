@@ -1,0 +1,19 @@
+name = "Distant Horizons"
+filename = "DistantHorizons-3.3.0-1.21.1-fabric-neoforge.jar"
+side = "both"
+pin = true
+
+[download]
+url = "https://cdn.modrinth.com/data/uCdwusMi/versions/EtH8QtMq/DistantHorizons-3.3.0-1.21.1-fabric-neoforge.jar"
+hash-format = "sha512"
+hash = "3b2e411def479e621d91d4f0015c9ebb52371ff7cbf1e99c57b3c296c512c6f6e2a815acd2514473e2761bcbb5114664717daae7d52d37a3a07611ce99afc53d"
+
+[update]
+[update.modrinth]
+mod-id = "uCdwusMi"
+version = "EtH8QtMq"
+
+[option]
+optional = true
+description = "Distant Horizons: distancia de render enorme (LODs). Desactívalo en equipos/Mac modestos."
+default = true

@@ -1,0 +1,1 @@
+resourcePacks:["vanilla","mod_resources","file/Icons v.1.14.zip","file/Icons Compats.zip","file/Icon Branding Remover - For 1.8-1.21.8.zip","file/Chat+ v.1.3.zip","file/Renfe Create.zip"]
