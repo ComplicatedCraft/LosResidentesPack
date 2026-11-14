@@ -1,0 +1,24 @@
+# Servidor de Los Residentes con Docker (imagen itzg/minecraft-server).
+#   docker compose up -d        -> arrancar
+#   docker compose logs -f      -> ver la consola
+#   docker compose restart      -> reiniciar (y actualizar mods)
+services:
+  minecraft:
+    image: itzg/minecraft-server:java21
+    environment:
+      EULA: "TRUE"
+      TYPE: NEOFORGE
+      VERSION: "1.21.1"
+      NEOFORGE_VERSION: "21.1.266"
+      PACKWIZ_URL: https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+      MEMORY: 6G
+      ONLINE_MODE: "FALSE"
+    ports:
+      - "25565:25565"   # Minecraft
+      - "25565:25565/udp"  # Sable (barcos/aviones de Aeronautics)
+      - "8100:8100"     # BlueMap (web)
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    stdin_open: true
+    tty: true

@@ -1,22 +1,33 @@
-# Publica la instancia de Prism como asset de la Release al crear un tag vX.Y.Z
-name: Release Prism
+# Al crear un tag vX.Y.Z publica una Release con:
+#   LosResidentes-Prism.zip   instancia de Prism que se auto-actualiza
+#   LosResidentes-Server.zip  scripts de arranque del servidor (Windows/Linux/macOS/Docker)
+#   LosResidentes.mrpack      pack para Modrinth App, ATLauncher, etc. (sin auto-actualización)
+name: Release
 on:
   push:
     tags: ["v*"]
 permissions:
   contents: write
 jobs:
-  prism:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Construir zip de Prism
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Construir artefactos
         run: |
           mkdir -p prism/minecraft
           curl -fsSL -o prism/minecraft/packwiz-installer-bootstrap.jar \
             https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar
-          cd prism && zip -r ../LosResidentes-Prism.zip instance.cfg mmc-pack.json minecraft
+          (cd prism && zip -r ../LosResidentes-Prism.zip instance.cfg mmc-pack.json minecraft)
+          (cd server && zip -r ../LosResidentes-Server.zip start.sh start.bat docker-compose.yml)
+          go install github.com/packwiz/packwiz@latest
+          "$(go env GOPATH)/bin/packwiz" modrinth export -o LosResidentes.mrpack
       - name: Publicar Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" LosResidentes-Prism.zip --title "Los Residentes $GITHUB_REF_NAME" --generate-notes
+        run: |
+          gh release create "$GITHUB_REF_NAME" LosResidentes-Prism.zip LosResidentes-Server.zip LosResidentes.mrpack \
+            --title "Los Residentes $GITHUB_REF_NAME" --generate-notes
