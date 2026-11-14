@@ -15,7 +15,7 @@ Responde siempre en español.
 | `mods/`, `resourcepacks/`, `shaderpacks/` | Un `.pw.toml` por proyecto, más `Renfe Create.zip` (resourcepack propio) |
 | `config/`, `options.txt` | Configuración por defecto que se envía a los clientes |
 | `prism/` | Instancia de Prism (la Action la empaqueta en el zip) |
-| `server/` | `start.sh`, `start.bat` y `docker-compose.yml` |
+| `server/` | `start.sh`, `start.bat`, `docker-compose.yml` (itzg) y `panel/` (Crafty + SFTP + `install.sh`) |
 | `tools/depcheck.py` | Comprueba las dependencias de una carpeta de mods instalada |
 | `.github/workflows/release.yml` | Con un tag `v*`, publica la Release (zip de Prism, zip de servidor y `.mrpack`) |
 

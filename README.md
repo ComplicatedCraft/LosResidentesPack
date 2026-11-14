@@ -105,6 +105,77 @@ La primera vez se pregunta por:
 
 El servidor necesita **Java 21** y unos **6 GB de RAM** solo para el juego. Los mods que son solo de cliente (shaders, zoom, etc.) no se instalan en el servidor.
 
+## Opción recomendada: Docker + panel web + SFTP + backups (Linux)
+
+Pensada para dejar el servidor en un ordenador que no es tuyo (por ejemplo un Linux Mint con una cuenta que ya existe). Todo vive en contenedores dentro de `~/losresidentes`: no se instala Java ni nada más en el sistema, aparte de Docker, y se borra entero con una carpeta.
+
+| Qué | Dónde | Para qué |
+|---|---|---|
+| **Crafty Controller** | `https://<ip>:8443` | Panel web: consola, arrancar y parar, editor de archivos, usuarios, tareas programadas y **backups** |
+| **SFTP** | `sftp://<ip>:2222` | Subir y bajar archivos con FileZilla o WinSCP (es el "FTP" de toda la vida, pero cifrado). Solo ve los servidores, los backups y la carpeta de importar, no el resto del ordenador |
+| **Tailscale** (opcional) | | Entrar al panel y al SFTP desde fuera de casa **sin abrirlos a internet** |
+
+### 1. Instalar
+
+Con la cuenta que ya hay en el ordenador (pedirá su contraseña de `sudo`):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/server/panel/install.sh | bash
+```
+
+El script hace todo esto:
+
+- Instala Docker desde los paquetes de Mint.
+- Descarga el `docker-compose.yml`.
+- Genera la contraseña del SFTP (se guarda en `~/losresidentes/.env`).
+- Arranca los contenedores.
+- Te enseña las direcciones y contraseñas.
+- Pregunta si quieres instalar Tailscale.
+
+Los contenedores arrancan solos cuando se enciende el ordenador.
+
+### 2. Crear el servidor en el panel
+
+1. Entra en `https://<ip>:8443`. El navegador avisará del certificado: es autofirmado, acéptalo. Inicia sesión con `admin` y la contraseña que mostró el instalador, y **cámbiala**.
+2. **Create New Server → Minecraft Java → pestaña Import Server → Zip**. Elige `LosResidentes-Server.zip`, que el instalador ya dejó en la carpeta de importar (si no aparece, súbelo desde tu PC). En *Server JAR* pon `start.sh` y en el puerto `25565`. La RAM de ese formulario da igual.
+3. En el servidor nuevo, ve a **Config** y cambia **Server Execution Command** a:
+   ```
+   sh start.sh
+   ```
+   Marca también **Auto Start** (que arranque con el ordenador) y **Crash Detection** (que se reinicie si se cae). Guarda.
+4. Dale a **Start**. La primera vez descarga NeoForge y los mods (tarda) y se para pidiendo la EULA: en **Files** abre `eula.txt`, pon `eula=true` y arranca de nuevo.
+5. En **Files**, ajusta `server.properties` (ver *Ajustes importantes*) y la RAM en `user_jvm_args.txt`.
+
+A partir de aquí, **cada vez que el servidor arranca se actualizan solos los mods** desde GitHub.
+
+### 3. Backups
+
+En el servidor, pestaña **Backups**:
+
+1. Pulsa el engranaje y pon en **Max Backups** cuántos guardar, por ejemplo `14`. Los más antiguos se borran solos.
+2. Ve a **Schedules → Create New Schedule**: acción **Backup Server**, cada **1 día** a una hora tranquila, por ejemplo las 05:00.
+3. Si quieres, añade otra tarea **Restart Server** diaria, unos minutos después del backup.
+
+Los backups se guardan en `~/losresidentes/crafty/backups`. Se pueden bajar desde el panel o por SFTP (carpeta `backups`). Para restaurar uno, usa **Backups → Restore** en el panel.
+
+> Un backup en el mismo disco no te protege si el disco muere. De vez en cuando bájate el último por SFTP, o cópialos a un USB o a la nube (por ejemplo con `rclone`).
+
+### 4. Acceso desde fuera
+
+- **Jugadores:** en el router del dueño hay que redirigir **25565 TCP y UDP** a este ordenador. Si no tienes acceso al router, usa [playit.gg](https://playit.gg), que hace de túnel y admite TCP y UDP.
+- **Panel y SFTP:** **no** los abras en el router. Instala Tailscale en ese ordenador (el instalador lo ofrece) y en el tuyo, con la misma cuenta. Así entras a `https://<ip-tailscale>:8443` y `sftp://<ip-tailscale>:2222` desde cualquier sitio, cifrado y sin exponer nada.
+- **BlueMap:** el puerto 8100 sí puedes abrirlo si quieres que los jugadores vean el mapa web.
+
+### Comandos útiles (en el ordenador del servidor)
+
+```sh
+cd ~/losresidentes
+sudo docker compose ps               # ¿está todo arrancado?
+sudo docker compose logs -f crafty   # ver el log del panel
+sudo docker compose pull && sudo docker compose up -d   # actualizar Crafty y SFTP
+sudo cat crafty/config/default-creds.txt                # contraseña inicial del panel
+```
+
 ## Opción 1: script de arranque (Windows, Linux y macOS)
 
 Es la manera más sencilla en un PC o un VPS.

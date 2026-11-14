@@ -1,0 +1,36 @@
+# Servidor de Los Residentes con panel web (Crafty Controller) + SFTP.
+# Lo instala install.sh; a mano: crea un .env con SFTP_PASSWORD=... y `docker compose up -d`.
+#
+#   Panel:  https://<ip>:8443          (usuario admin; contraseña inicial en crafty/config/default-creds.txt)
+#   SFTP:   sftp://<ip>:2222           (usuario admin; contraseña en .env)
+#   Juego:  <ip>:25565
+services:
+  crafty:
+    image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    container_name: crafty
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Madrid
+    ports:
+      - "8443:8443"         # panel web (HTTPS)
+      - "25565:25565"       # Minecraft
+      - "25565:25565/udp"   # Sable (barcos/aviones de Aeronautics)
+      - "8100:8100"         # BlueMap (mapa web)
+    volumes:
+      - ./crafty/backups:/crafty/backups
+      - ./crafty/logs:/crafty/logs
+      - ./crafty/servers:/crafty/servers
+      - ./crafty/config:/crafty/app/config
+      - ./crafty/import:/crafty/import
+
+  sftp:
+    image: atmoz/sftp:alpine
+    container_name: sftp
+    restart: unless-stopped
+    ports:
+      - "2222:22"
+    volumes:
+      - ./crafty/servers:/home/admin/servidores
+      - ./crafty/backups:/home/admin/backups:ro
+      - ./crafty/import:/home/admin/importar
+    command: "admin:${SFTP_PASSWORD:?Falta SFTP_PASSWORD en .env}:1000:1000"
