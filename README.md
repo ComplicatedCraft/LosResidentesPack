@@ -65,10 +65,10 @@ Tras subir cambios del pack, crea un tag (`git tag v1.0.1 && git push --tags`). 
 
 - **WATERMeDIA está fijado en 2.1.36**: LittleFrames solo acepta la 2.1.x.
 - **Distant Horizons está fijado en 3.2.0**: la 3.3.0 desactiva los shaders de Iris sin avisar, y de la 3.3.1 a la 3.3.3 el servidor crashea con Chunky. Prueba ambas cosas antes de hacer `packwiz update distanthorizons`. Si DH os ofrece actualizarse dentro del juego, decid que no.
-- **RRLS** está configurado para ocultar solo las recargas de recursos, no la carga inicial. Si se ocultara también la carga inicial, se podría entrar a un servidor antes de que los mods terminen de cargar y te echaría con un error de canales.
+- **RRLS** está configurado (y forzado en cada actualización) para ocultar solo las recargas de recursos, no la carga inicial. Si se ocultara también la carga inicial, se podría entrar a un servidor antes de que los mods terminen de cargar y te echaría con un error de canales.
 - Equivalencias en NeoForge: Dynmap → **BlueMap** (web en el puerto 8100; acepta la descarga en `config/bluemap/core.conf`), InventoryRollbackPlus → **InvHistory** (`/invhistory see <jugador>`), Continuity → **Continuity: NeoForged**.
 - Árbol de habilidades: Pufferfish's Skills + Default Skill Trees (combate y minería, mejoras pequeñas). Se abre con la tecla `K`.
 - Teclas cambiadas para evitar choques: activar/desactivar shaders es `F6` (no `K`); recargar shaders queda sin tecla (`R` es de Create Railways Navigator). Zoom: `C`.
 - Shaders y Create Aeronautics: incluidos Iris Flywheel Compat, Iris Veil Compat y Aeronautics Hot Air Fix para que barcos, alas y globos se vean bien con shaders.
 - `/player` (Carpet) funciona con `online-mode=false`.
-- `options.txt`, `iris.properties` y `rrls.toml` solo se escriben en la primera instalación (`preserve`), así que no te pisan la configuración.
+- `options.txt` e `iris.properties` solo se escriben en la primera instalación (`preserve`), así que no te pisan la configuración.
