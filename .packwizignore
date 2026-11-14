@@ -6,3 +6,4 @@ server/
 tools/
 .github/
 .gitattributes
+docs/

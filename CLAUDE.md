@@ -15,12 +15,53 @@ Responde siempre en español.
 | `mods/`, `resourcepacks/`, `shaderpacks/` | Un `.pw.toml` por proyecto, más `Renfe Create.zip` (resourcepack propio) |
 | `config/`, `options.txt` | Configuración por defecto que se envía a los clientes |
 | `prism/` | Instancia de Prism (la Action la empaqueta en el zip) |
-| `server/` | `start.sh`, `start.bat`, `docker-compose.yml` (itzg) y `panel/` (Crafty + SFTP + `install.sh`) |
+| `server/start.sh`, `start.bat` | Arranque universal del servidor: instala o actualiza NeoForge y los mods, y arranca |
+| `server/docker-compose.yml` | Alternativa simple con la imagen `itzg/minecraft-server` (`PACKWIZ_URL`) |
+| `server/panel/` | **Stack recomendado**: `docker-compose.yml` (Crafty + SFTP + cloudflared opcional) e `install.sh` para Linux Mint |
+| `docs/modflared.md` | Guía de Cloudflare Tunnel y Modflared (admin y jugadores) |
 | `tools/depcheck.py` | Comprueba las dependencias de una carpeta de mods instalada |
-| `.github/workflows/release.yml` | Con un tag `v*`, publica la Release (zip de Prism, zip de servidor y `.mrpack`) |
+| `.github/workflows/release.yml` | Con un tag `v*`, publica la Release (zip de Prism, `LosResidentes-Server.zip` con `server/*` y `.mrpack`) |
 
 `.packwizignore` excluye del pack todo lo que es solo del repo (README, CLAUDE.md, prism/, server/,
-tools/, .github/). Si añades otra carpeta solo de repo, métela ahí.
+docs/, tools/, .github/). Si añades otra carpeta solo de repo, métela ahí.
+
+## Servidor de producción
+
+Va en un **Linux Mint que no es del usuario** y que ya tiene una cuenta. Hay que tocar el sistema lo mínimo:
+todo vive en `~/losresidentes`, dentro de contenedores, y del sistema solo se instala Docker (`docker.io` y
+`docker-compose-v2` de apt).
+
+| Pieza | Detalle |
+|---|---|
+| **Crafty Controller** (`crafty`) | Panel web en 8443 (HTTPS autofirmado). El servidor se importa desde `LosResidentes-Server.zip` y su *Execution Command* es `sh start.sh`. Los backups y reinicios se programan en Crafty |
+| **SFTP** (`atmoz/sftp`, puerto 2222) | Solo monta `crafty/servers`, `crafty/backups` (solo lectura) y `crafty/import`. **No** se da SSH a la cuenta del dueño. La contraseña está en `.env` (`SFTP_PASSWORD`) |
+| **cloudflared** (perfil `tunnel`) | Solo arranca si `.env` tiene `COMPOSE_PROFILES=tunnel` y `CF_TUNNEL_TOKEN`. Túnel gestionado desde el panel de Zero Trust: `https://crafty:8443` (No TLS Verify y Cloudflare Access), `tcp://crafty:25565` y `http://crafty:8100` |
+| **Tailscale** | Opcional, en el host. Es el acceso remoto para el panel y el SFTP. **Nunca** abrir 8443 ni 2222 en el router |
+
+Detalles que importan si tocas `start.sh` o el stack:
+
+- **Dentro de Crafty no hay `curl` ni `wget`.** `start.sh` descarga con `python3` si no hay `curl`. No le metas dependencias nuevas.
+- **El `java` por defecto de Crafty es el 25.** `start.sh` busca Java 21 (`/usr/lib/jvm/java-21-openjdk*`) y lanza
+  NeoForge directamente (`@user_jvm_args.txt @libraries/.../unix_args.txt`) en vez de con `run.sh`, que usaría el `java` del PATH.
+- **La RAM se configura en `user_jvm_args.txt`**, no en el formulario de Crafty. Ese archivo de NeoForge no
+  termina en salto de línea: añade siempre con `printf '\n...'`.
+- **Si cambia la versión de NeoForge en `pack.toml`**, `start.sh` la reinstala solo. `docker-compose.yml` (itzg)
+  lleva `NEOFORGE_VERSION` escrito a mano: actualízalo allí también.
+- **Puertos:** 25565 TCP + **UDP** (Sable) y 8100 (BlueMap). El túnel de Cloudflare solo pasa TCP: con túnel,
+  Sable usa TCP (más latencia en las naves).
+- **Modflared** (cliente) es lo que permite a los jugadores entrar por el túnel. Necesita el TXT
+  `cloudflared-use-tunnel` en el DNS del hostname del juego. Guarda sus datos en `<carpeta del juego>/modflared/`
+  (`forced_tunnels.json` y el binario de `cloudflared`). Todo está en `docs/modflared.md`.
+- Valida los cambios en compose e instalador con comprobaciones baratas: `bash -n install.sh`,
+  `SFTP_PASSWORD=x docker compose config` y `COMPOSE_PROFILES=tunnel ... docker compose config --services`.
+
+## Cuánto probar
+
+- **Lo nuestro se prueba a fondo:** mods entre sí, configs del pack, `start.sh`, server + cliente entrando con capturas.
+  Esas pruebas destaparon bugs reales (shaders apagados por DH, RRLS, dependencias que faltaban).
+- **Las herramientas de terceros muy usadas no se prueban de punta a punta** (Crafty, itzg, cloudflared, Tailscale,
+  launchers). El usuario lo pidió expresamente. Basta con leer su documentación y hacer comprobaciones concretas y
+  rápidas (por ejemplo "¿la imagen trae curl?").
 
 ## Añadir un mod: proceso obligatorio
 
@@ -151,7 +192,9 @@ Actualiza la lista de mods y las notas del `README.md` si cambia algo que vea el
   Aeronautics Hot Air Fix. No los quites.
 - **Descartados**: C2ME (alfa, choca con Create, Sable y DH), ServerCore (se pisa con Lithium),
   Sinytra Connector (en general), Carry On (el usuario no lo quiere).
-- **Puertos**: 25565 TCP + **UDP** (Sable) y 8100 (BlueMap). Si un mod nuevo abre puertos, documéntalo en el README.
+- **Puertos**: 25565 TCP + **UDP** (Sable) y 8100 (BlueMap). Si un mod nuevo abre puertos, documéntalo en el README
+  y en `server/panel/docker-compose.yml`, y piensa si pasa por el túnel de Cloudflare (solo TCP y HTTP).
+- **Modflared** debe seguir en el pack mientras se use el túnel. Si se cambia o actualiza, revisa `docs/modflared.md`.
 - Un "trozo de terreno flotante" puede ser terreno vanilla real. Compara con un servidor vanilla
   y el mismo seed antes de culpar a un mod de generación.
 

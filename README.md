@@ -198,6 +198,8 @@ y ejecuta `cd ~/losresidentes && sudo docker compose up -d`.
 
 **5. Avisar a Modflared.** En el DNS de tu dominio, crea un registro **TXT** con nombre `mc` y contenido `cloudflared-use-tunnel`.
 
+**Guía detallada:** [docs/modflared.md](docs/modflared.md).
+
 **Cómo entran los jugadores.** Cloudflare no deja conectar el juego a pelo por un túnel: el cliente necesita `cloudflared`. El pack ya incluye **[Modflared](https://modrinth.com/mod/modflared)**, que lo hace solo. Los jugadores añaden `mc.tudominio.com` como servidor y entran normal, sin instalar nada más.
 
 **Limitaciones del túnel:**
