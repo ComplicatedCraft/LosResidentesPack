@@ -1,0 +1,22 @@
+# Publica la instancia de Prism como asset de la Release al crear un tag vX.Y.Z
+name: Release Prism
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  prism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir zip de Prism
+        run: |
+          mkdir -p prism/minecraft
+          curl -fsSL -o prism/minecraft/packwiz-installer-bootstrap.jar \
+            https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar
+          cd prism && zip -r ../LosResidentes-Prism.zip instance.cfg mmc-pack.json minecraft
+      - name: Publicar Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" LosResidentes-Prism.zip --title "Los Residentes $GITHUB_REF_NAME" --generate-notes

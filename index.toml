@@ -6,6 +6,16 @@ hash = "efe0c30620affee4a63c94309643da1b5a10d9b411d292f1394bd233489a7334"
 preserve = true
 
 [[files]]
+file = "config/rrls.toml"
+hash = "f097471ad7fd4d3adccdc4d6f935b0cdcac68c0cbdec6ea3d752d307ec66d867"
+preserve = true
+
+[[files]]
+file = "mods/aeronautics-hot-air-fix.pw.toml"
+hash = "55c8aefec97caf982304d74c1e7b5e0bc45b34da5be45afe9a1c9e23cfd144b3"
+metafile = true
+
+[[files]]
 file = "mods/architectury-api.pw.toml"
 hash = "21347d7f9c96cebacb7238dbef2670e2906a11572606016c8184e9485947dacc"
 metafile = true
@@ -102,7 +112,7 @@ metafile = true
 
 [[files]]
 file = "mods/distanthorizons.pw.toml"
-hash = "2ab294f38b0242e5318faa16d4aad2dbee2aeca68fe40a1a8945c71def5f0b3f"
+hash = "0f25a5a2fbe8184f3924f063d5203af222f0bfb779e5ea06ff15daf1b0cf54cf"
 metafile = true
 
 [[files]]
@@ -148,6 +158,11 @@ metafile = true
 [[files]]
 file = "mods/iris-flw-compat.pw.toml"
 hash = "ed85b2ed42beb6523223eef6f0ae397ed29f8059b2bf5aa08d8598de04865614"
+metafile = true
+
+[[files]]
+file = "mods/iris-veil-compat.pw.toml"
+hash = "a485506e10aa312fe8786763a5a26a406ff3240541ecbdb7d4777d2efa1ceb40"
 metafile = true
 
 [[files]]
@@ -282,7 +297,7 @@ metafile = true
 
 [[files]]
 file = "options.txt"
-hash = "19580eccc7551c4dd36d65ae6f97b4ab481b86178b3fe7a61bfdce9215296345"
+hash = "ff81ea85b01dd8520676040dd730c1ed81dd2415c7eaf1c2a718dad24bed622d"
 preserve = true
 
 [[files]]
