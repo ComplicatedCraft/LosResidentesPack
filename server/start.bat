@@ -2,7 +2,7 @@
 rem Servidor de Los Residentes (Windows). Ponlo en una carpeta vacia y haz doble clic.
 rem Cada arranque instala/actualiza NeoForge y los mods desde GitHub y luego arranca el servidor.
 cd /d "%~dp0"
-set PACK=https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+set PACK=https://losresidentespack.pages.dev/pack.toml
 
 for /f "usebackq delims=" %%v in (`powershell -NoProfile -Command "if ((Invoke-WebRequest -UseBasicParsing '%PACK%').Content -match 'neoforge = \"(.+)\"') { $Matches[1] }"`) do set NEO=%%v
 if "%NEO%"=="" ( echo No se pudo leer pack.toml & pause & exit /b 1 )

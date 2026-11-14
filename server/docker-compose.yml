@@ -10,7 +10,7 @@ services:
       TYPE: NEOFORGE
       VERSION: "1.21.1"
       NEOFORGE_VERSION: "21.1.266"
-      PACKWIZ_URL: https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+      PACKWIZ_URL: https://losresidentespack.pages.dev/pack.toml
       MEMORY: 6G
       ONLINE_MODE: "FALSE"
     ports:

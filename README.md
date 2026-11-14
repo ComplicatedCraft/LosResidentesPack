@@ -17,7 +17,7 @@ Todo está en la [última Release](https://github.com/ComplicatedCraft/LosReside
 Por debajo, todo sale de este repo con [packwiz](https://packwiz.infra.link/). La URL del pack es:
 
 ```
-https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+https://losresidentespack.pages.dev/pack.toml
 ```
 
 ---
@@ -47,7 +47,7 @@ Por si no quieres usar el zip. También se actualiza sola.
 2. Descarga [`packwiz-installer-bootstrap.jar`](https://github.com/packwiz/packwiz-installer-bootstrap/releases/latest) y ponlo en la carpeta `minecraft` de la instancia (*Carpeta de la instancia → minecraft*).
 3. *Editar → Ajustes → Comandos personalizados*, marca la casilla y pon en **Comando de pre-lanzamiento**:
    ```
-   "$INST_JAVA" -jar packwiz-installer-bootstrap.jar https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+   "$INST_JAVA" -jar packwiz-installer-bootstrap.jar https://losresidentespack.pages.dev/pack.toml
    ```
 
 ## Opción 3: Modrinth App, ATLauncher u otro launcher compatible con `.mrpack`
@@ -65,7 +65,7 @@ Es la opción más manual. Úsala solo si no puedes usar ninguna de las anterior
 2. Mejor crea un perfil con su propia carpeta de juego, para no mezclar con tu `.minecraft` normal.
 3. Pon [`packwiz-installer-bootstrap.jar`](https://github.com/packwiz/packwiz-installer-bootstrap/releases/latest) en esa carpeta y ejecuta, desde ella:
    ```
-   java -jar packwiz-installer-bootstrap.jar https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+   java -jar packwiz-installer-bootstrap.jar https://losresidentespack.pages.dev/pack.toml
    ```
 4. Repite el paso 3 cada vez que se actualice el pack.
 
@@ -124,7 +124,7 @@ Pensada para dejar el servidor en un ordenador que no es tuyo (por ejemplo un Li
 Con la cuenta que ya hay en el ordenador (pedirá su contraseña de `sudo`):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/server/panel/install.sh | bash
+curl -fsSL https://losresidentespack.pages.dev/server/panel/install.sh | bash
 ```
 
 El script hace todo esto:
@@ -258,7 +258,7 @@ Esto es exactamente lo que hacen los scripts:
 
 ```sh
 java -jar neoforge-21.1.266-installer.jar --install-server .
-java -jar packwiz-installer-bootstrap.jar -g -s server https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+java -jar packwiz-installer-bootstrap.jar -g -s server https://losresidentespack.pages.dev/pack.toml
 ./run.sh nogui      # run.bat en Windows
 ```
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Instala el servidor de Los Residentes con panel (Crafty) + SFTP en Linux Mint / Ubuntu / Debian.
 # Uso (con la cuenta que ya existe en el ordenador, pedirá la contraseña de sudo):
-#   curl -fsSL https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/server/panel/install.sh | bash
+#   curl -fsSL https://losresidentespack.pages.dev/server/panel/install.sh | bash
 # Todo queda en ~/losresidentes. Para desinstalar: cd ~/losresidentes && sudo docker compose down && rm -rf ~/losresidentes
 set -euo pipefail
-REPO=https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main
+REPO=https://losresidentespack.pages.dev
 DIR="$HOME/losresidentes"
 
 echo ">> Instalando Docker (paquetes de la distribución)..."

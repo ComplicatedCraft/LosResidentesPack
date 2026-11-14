@@ -5,7 +5,7 @@
 # Java: usa $JAVA si está definido; si no, busca un Java 21; si no, el `java` del sistema.
 set -e
 cd "$(dirname "$0")"
-PACK=https://raw.githubusercontent.com/ComplicatedCraft/LosResidentesPack/main/pack.toml
+PACK=https://losresidentespack.pages.dev/pack.toml
 
 # Descargar con curl, o con python3 si no hay curl (p. ej. dentro de Crafty)
 fetch() {  # fetch <url> [archivo]
