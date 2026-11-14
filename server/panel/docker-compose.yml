@@ -34,3 +34,15 @@ services:
       - ./crafty/backups:/home/admin/backups:ro
       - ./crafty/import:/home/admin/importar
     command: "admin:${SFTP_PASSWORD:?Falta SFTP_PASSWORD en .env}:1000:1000"
+
+  # Cloudflare Tunnel (opcional). Solo arranca si .env tiene COMPOSE_PROFILES=tunnel y CF_TUNNEL_TOKEN.
+  # Las rutas (panel, juego, mapa) se configuran en el panel de Cloudflare Zero Trust apuntando a
+  # https://crafty:8443, tcp://crafty:25565 y http://crafty:8100. Ver README.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CF_TUNNEL_TOKEN:-}

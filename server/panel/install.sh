@@ -23,6 +23,15 @@ if [ ! -f .env ]; then
   chmod 600 .env
 fi
 
+if ! grep -q '^CF_TUNNEL_TOKEN=' .env; then
+  echo
+  echo "Cloudflare Tunnel (opcional): publica el panel, el juego y el mapa en tu dominio sin abrir puertos."
+  read -r -p "Pega el token del túnel (Zero Trust → Networks → Tunnels), o Enter para saltar: " t </dev/tty || t=""
+  if [ -n "$t" ]; then
+    printf 'CF_TUNNEL_TOKEN=%s\nCOMPOSE_PROFILES=tunnel\n' "$t" >> .env
+  fi
+fi
+
 echo ">> Arrancando contenedores..."
 sudo docker compose pull -q
 sudo docker compose up -d
@@ -35,7 +44,8 @@ echo
 echo "================ LISTO ================"
 echo "Panel:  https://$IP:8443   (el navegador avisará del certificado: es normal, acéptalo)"
 sudo cat crafty/config/default-creds.txt 2>/dev/null | grep -E '"(username|password)"' || echo "  (credenciales: sudo cat $DIR/crafty/config/default-creds.txt)"
-echo "SFTP:   sftp://$IP:2222   usuario: admin   contraseña: $(cut -d= -f2 .env)"
+echo "SFTP:   sftp://$IP:2222   usuario: admin   contraseña: $(sed -n 's/^SFTP_PASSWORD=//p' .env)"
+grep -q '^COMPOSE_PROFILES=tunnel' .env && echo "Cloudflare Tunnel: activo (configura las rutas en Zero Trust, ver README)"
 echo "Siguiente paso: crear el servidor en el panel (ver README, sección 'Servidor con panel')."
 echo
 if ! command -v tailscale >/dev/null; then

@@ -90,6 +90,10 @@ La primera vez se pregunta por:
 - En Apple Silicon (M1/M2/M3/M4) usa Java 21 **arm64**. Prism lo hace solo; con un Java x64 bajo Rosetta irá mucho peor.
 - Con 8 GB de RAM: dale 4-5 GB al juego, usa Reimagined o quita los shaders, y desactiva Distant Horizons.
 
+## Servidores detrás de Cloudflare Tunnel
+
+El pack incluye **Modflared**: si el servidor está publicado con un Cloudflare Tunnel (por ejemplo `mc.tudominio.com`), basta con añadirlo como un servidor normal. No hay que instalar nada más.
+
 ## Teclas que conviene saber
 
 | Tecla | Acción |
@@ -165,6 +169,44 @@ Los backups se guardan en `~/losresidentes/crafty/backups`. Se pueden bajar desd
 - **Jugadores:** en el router del dueño hay que redirigir **25565 TCP y UDP** a este ordenador. Si no tienes acceso al router, usa [playit.gg](https://playit.gg), que hace de túnel y admite TCP y UDP.
 - **Panel y SFTP:** **no** los abras en el router. Instala Tailscale en ese ordenador (el instalador lo ofrece) y en el tuyo, con la misma cuenta. Así entras a `https://<ip-tailscale>:8443` y `sftp://<ip-tailscale>:2222` desde cualquier sitio, cifrado y sin exponer nada.
 - **BlueMap:** el puerto 8100 sí puedes abrirlo si quieres que los jugadores vean el mapa web.
+- **Alternativa sin abrir ningún puerto:** Cloudflare Tunnel (apartado siguiente).
+
+### 5. Cloudflare Tunnel (opcional, sin abrir puertos)
+
+Si tienes un dominio en Cloudflare, el túnel publica el panel, el juego y el mapa con nombres como `panel.tudominio.com` **sin tocar el router**. El contenedor `cloudflared` abre la conexión hacia Cloudflare desde dentro de la red.
+
+**1. Crear el túnel.** En [Cloudflare Zero Trust](https://one.dash.cloudflare.com) ve a **Networks → Tunnels → Create a tunnel → Cloudflared**, ponle un nombre y copia el **token**: es la cadena larga que aparece en el comando de instalación, después de `--token`.
+
+**2. Activarlo en el servidor.** El instalador pregunta por el token. Si ya instalaste, añádelo a `~/losresidentes/.env`:
+
+```
+CF_TUNNEL_TOKEN=<token>
+COMPOSE_PROFILES=tunnel
+```
+
+y ejecuta `cd ~/losresidentes && sudo docker compose up -d`.
+
+**3. Rutas.** En el túnel, pestaña **Public Hostname**, añade:
+
+| Hostname | Service | Notas |
+|---|---|---|
+| `panel.tudominio.com` | `https://crafty:8443` | En *Additional settings → TLS* activa **No TLS Verify** (Crafty usa un certificado autofirmado) |
+| `mc.tudominio.com` | `tcp://crafty:25565` | El juego |
+| `mapa.tudominio.com` | `http://crafty:8100` | BlueMap (opcional) |
+
+**4. Proteger el panel (muy recomendable).** En **Access → Applications → Add an application → Self-hosted**, pon `panel.tudominio.com` y una política que solo deje entrar a tu email. Así, antes de llegar al login de Crafty, Cloudflare pide un código que te llega al correo.
+
+**5. Avisar a Modflared.** En el DNS de tu dominio, crea un registro **TXT** con nombre `mc` y contenido `cloudflared-use-tunnel`.
+
+**Cómo entran los jugadores.** Cloudflare no deja conectar el juego a pelo por un túnel: el cliente necesita `cloudflared`. El pack ya incluye **[Modflared](https://modrinth.com/mod/modflared)**, que lo hace solo. Los jugadores añaden `mc.tudominio.com` como servidor y entran normal, sin instalar nada más.
+
+**Limitaciones del túnel:**
+
+- Solo pasa TCP. El UDP de Sable no va por el túnel, así que los barcos y aviones de Aeronautics se sincronizan por TCP, con algo más de latencia.
+- Todo el tráfico pasa por Cloudflare, así que el ping puede ser algo mayor que con el puerto abierto.
+- Si puedes abrir el 25565 en el router, para jugar es mejor. El túnel brilla para el panel y el mapa.
+- Modflared avisa de que "no está probado del todo". Si diera problemas, los jugadores pueden entrar por la IP con el puerto abierto, por playit.gg o por Tailscale.
+- El SFTP no pasa por el túnel: usa Tailscale para eso.
 
 ### Comandos útiles (en el ordenador del servidor)
 
@@ -285,6 +327,8 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 - Continuity → **Continuity: NeoForged**
 
 **Shaders con Create Aeronautics:** Iris Flywheel Compat, Iris Veil Compat y Aeronautics Hot Air Fix hacen que barcos, alas y globos se vean bien con shaders.
+
+**Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel.
 
 **Optimización:**
 
