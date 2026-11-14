@@ -1,3 +1,4 @@
+# Gestionado por Los Residentes Pack: se sobrescribe en cada actualización
 #Allowed Values: ALL, LOADING, RELOADING, NONE
 hideOverlays = "RELOADING"
 #text.autoconfig.rrls.option.rgbProgress.@Tooltip

@@ -7,7 +7,7 @@ preserve = true
 
 [[files]]
 file = "config/rrls.toml"
-hash = "f097471ad7fd4d3adccdc4d6f935b0cdcac68c0cbdec6ea3d752d307ec66d867"
+hash = "020a81481358bfbabd1b5dd6162ecd5710fc7c600ce2ffdc1eebeef0bf1966f3"
 
 [[files]]
 file = "mods/aeronautics-hot-air-fix.pw.toml"
