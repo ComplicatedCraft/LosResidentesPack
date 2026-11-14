@@ -14,7 +14,7 @@ if not exist "libraries\net\neoforged\neoforge\%NEO%" (
   del neoforge-installer.jar neoforge-installer.jar.log 2>nul
 )
 
-findstr /b /c:"-Xmx" user_jvm_args.txt >nul 2>&1 || echo -Xms6G -Xmx6G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200>> user_jvm_args.txt
+findstr /r /c:"^-Xm" user_jvm_args.txt >nul 2>&1 || (echo.& echo -Xms6G -Xmx6G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200)>> user_jvm_args.txt
 
 echo ^>^> Sincronizando mods...
 if not exist packwiz-installer-bootstrap.jar curl -fsSL -o packwiz-installer-bootstrap.jar https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar

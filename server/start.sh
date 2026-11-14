@@ -16,7 +16,7 @@ if [ ! -d "libraries/net/neoforged/neoforge/$NEO" ]; then
 fi
 
 # RAM por defecto (cámbiala en user_jvm_args.txt)
-grep -q '^-Xmx' user_jvm_args.txt 2>/dev/null || echo '-Xms6G -Xmx6G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200' >> user_jvm_args.txt
+grep -q '^[^#]*-Xmx' user_jvm_args.txt 2>/dev/null || printf '\n-Xms6G -Xmx6G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200\n' >> user_jvm_args.txt
 
 echo ">> Sincronizando mods..."
 [ -f packwiz-installer-bootstrap.jar ] || curl -fsSL -o packwiz-installer-bootstrap.jar https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar
