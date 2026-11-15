@@ -179,7 +179,7 @@ Los backups se guardan en `~/losresidentes/crafty/backups`. Se pueden bajar desd
 
 - **Jugadores:** en el router del dueño hay que redirigir **25565 TCP y UDP** a este ordenador. Si no tienes acceso al router, usa [playit.gg](https://playit.gg), que hace de túnel y admite TCP y UDP.
 - **Panel y SFTP:** **no** los abras en el router. Instala Tailscale en ese ordenador (el instalador lo ofrece) y en el tuyo, con la misma cuenta. Así entras a `https://<ip-tailscale>:8443` y `sftp://<ip-tailscale>:2222` desde cualquier sitio, cifrado y sin exponer nada.
-- **BlueMap:** el puerto 8100 sí puedes abrirlo si quieres que los jugadores vean el mapa web.
+- **BlueMap:** el puerto 8100 sí puedes abrirlo si quieres que los jugadores vean el mapa web. Ábrelo junto con el **3876** (Create Track Map), que es de donde el mapa saca los trenes.
 - **Alternativa sin abrir ningún puerto:** Cloudflare Tunnel (apartado siguiente).
 
 ### 5. Cloudflare Tunnel (opcional, sin abrir puertos)
@@ -204,6 +204,7 @@ y ejecuta `cd ~/losresidentes && sudo docker compose up -d`.
 | `panel.tudominio.com` | `https://crafty:8443` | En *Additional settings → TLS* activa **No TLS Verify** (Crafty usa un certificado autofirmado) |
 | `mc.tudominio.com` | `tcp://crafty:25565` | El juego |
 | `mapa.tudominio.com` | `http://crafty:8100` | BlueMap (opcional) |
+| `mapa.tudominio.com`, *Path* `api/.*` | `http://crafty:3876` | Trenes de Create en BlueMap. Esta ruta tiene que ir **encima** de la anterior en la lista |
 
 **4. Proteger el panel (muy recomendable).** En **Access → Applications → Add an application → Self-hosted**, pon `panel.tudominio.com` y una política que solo deje entrar a tu email. Así, antes de llegar al login de Crafty, Cloudflare pide un código que te llega al correo.
 
@@ -284,6 +285,7 @@ El instalador de NeoForge está [aquí](https://maven.neoforged.net/releases/net
 | 25565 | TCP | Minecraft |
 | 25565 | UDP | Sable (movimiento fluido de barcos y aviones de Aeronautics; sin él va por TCP con más lag) |
 | 8100 | TCP | BlueMap, el mapa web (opcional) |
+| 3876 | TCP | Create Track Map: los trenes que se ven en BlueMap, y su propio mapa en `http://<ip>:3876` (opcional) |
 
 **`server.properties`:**
 
@@ -291,7 +293,7 @@ El instalador de NeoForge está [aquí](https://maven.neoforged.net/releases/net
 - **authlogic:** `/authlogic list` muestra los registrados, `/authlogic reset <nombre>` borra la llave de alguien que perdió su contraseña, y `/authlogic whitelist on|add|remove` es su lista blanca. Sus datos están en la carpeta `authlogic/` del servidor: entra en los backups y **no la compartas**. Si se pierde (por ejemplo al reinstalar el servidor sin ella), todos los no premium verán "Server Key Changed" y tendrán que borrar su `authlogic/client_servers.json`.
 - `view-distance=10` y `simulation-distance=8` van bien. Distant Horizons se encarga de lo lejano.
 
-**BlueMap:** la primera vez, abre `config/bluemap/core.conf`, pon `accept-download: true` y reinicia. El mapa queda en `http://<ip>:8100`.
+**BlueMap:** la primera vez, abre `config/bluemap/core.conf`, pon `accept-download: true` y reinicia. El mapa queda en `http://<ip>:8100`, con las vías, trenes, estaciones y señales de Create en tiempo real (grupo *Trenes de Create* del menú de marcadores).
 
 **Pregenerar el mundo (recomendado):** genera el terreno antes de que entre la gente, para que el servidor no vaya a tirones.
 
@@ -333,10 +335,13 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 
 - **RRLS** solo oculta las recargas de recursos, no la carga inicial. Así no se puede entrar a un servidor antes de que los mods terminen de cargar, que daría un error de canales.
 - `options.txt` e `iris.properties` solo se escriben en la primera instalación, así que no te pisan los ajustes. `rrls.toml` se fuerza siempre.
+- `config/bluemap/webapp.conf` también se fuerza: es el que carga en BlueMap el script de los trenes de Create. Si lo cambias en el servidor, la siguiente actualización lo pisa; cámbialo en el repo.
 
 **Equivalencias en NeoForge:**
 
 - Dynmap → **BlueMap**
+- dynmap-trains → port propio para BlueMap en [`modificados/dynmap-trains`](modificados/dynmap-trains)
+- Create Track Map (sin versión para 1.21.1) → **Create Track Map: Unofficial Fork**
 - InventoryRollbackPlus → **InvHistory**
 - Continuity → **Continuity: NeoForged**
 

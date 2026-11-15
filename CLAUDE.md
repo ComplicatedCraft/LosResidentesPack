@@ -20,10 +20,11 @@ Responde siempre en español.
 | `server/panel/` | **Stack recomendado**: `docker-compose.yml` (Crafty + SFTP + cloudflared opcional) e `install.sh` para Linux Mint |
 | `docs/modflared.md` | Guía de Cloudflare Tunnel y Modflared (admin y jugadores) |
 | `tools/depcheck.py` | Comprueba las dependencias de una carpeta de mods instalada |
+| `modificados/` | Mods y addons que hemos modificado o portado nosotros, uno por carpeta (ver "Modificar un mod") |
 | `.github/workflows/release.yml` | Con un tag `v*`, publica la Release (zip de Prism, `LosResidentes-Server.zip` con `server/*` y `.mrpack`) |
 
 `.packwizignore` excluye del pack todo lo que es solo del repo (README, CLAUDE.md, prism/, server/,
-docs/, tools/, .github/). Si añades otra carpeta solo de repo, métela ahí.
+docs/, tools/, modificados/, .github/). Si añades otra carpeta solo de repo, métela ahí.
 
 ## Servidor de producción
 
@@ -47,8 +48,9 @@ Detalles que importan si tocas `start.sh` o el stack:
   termina en salto de línea: añade siempre con `printf '\n...'`.
 - **Si cambia la versión de NeoForge en `pack.toml`**, `start.sh` la reinstala solo. `docker-compose.yml` (itzg)
   lleva `NEOFORGE_VERSION` escrito a mano: actualízalo allí también.
-- **Puertos:** 25565 TCP + **UDP** (Sable) y 8100 (BlueMap). El túnel de Cloudflare solo pasa TCP: con túnel,
-  Sable usa TCP (más latencia en las naves).
+- **Puertos:** 25565 TCP + **UDP** (Sable), 8100 (BlueMap) y 3876 (API de Create Track Map). El túnel de Cloudflare solo pasa TCP: con túnel,
+  Sable usa TCP (más latencia en las naves). En el túnel, `mapa.<dominio>` con *Path* `api/.*` va a `http://crafty:3876`
+  (encima de la ruta general del mapa) para que los trenes salgan en BlueMap sin CORS ni contenido mixto.
 - **Modflared** (cliente) es lo que permite a los jugadores entrar por el túnel. Necesita el TXT
   `cloudflared-use-tunnel` en el DNS del hostname del juego. Guarda sus datos en `<carpeta del juego>/modflared/`
   (`forced_tunnels.json` y el binario de `cloudflared`). Todo está en `docs/modflared.md`.
@@ -183,6 +185,56 @@ git tag vX.Y.Z && git push origin vX.Y.Z               # regenera los zips y el 
 
 Actualiza la lista de mods y las notas del `README.md` si cambia algo que vea el jugador o el admin.
 
+## Modificar un mod
+
+A veces un mod no existe para NeoForge 1.21.1, no encaja con el servidor (por ejemplo, es para Dynmap y
+usamos BlueMap) o tiene un fallo que nos afecta. Antes de modificar nada, **busca si ya hay un fork o un port**
+(Modrinth con `loaders=neoforge` y `game_versions=1.21.1`, y la lista de forks en GitHub ordenada por
+`pushed_at`). Así salió Create Track Map: el oficial llega a 1.20.1, pero el fork de AyOhEe ya está en Modrinth.
+
+### Antes de tocarlo: la licencia
+
+- MIT, Apache, GPL, LGPL, MPL: se puede modificar y redistribuir. Con GPL/LGPL el resultado sigue siendo
+  GPL/LGPL: copia el `LICENSE` original a la carpeta y deja el código fuente en el repo.
+- **All Rights Reserved o sin licencia: no se redistribuye.** Pregunta al usuario (se puede pedir permiso al autor).
+
+### Dónde va
+
+Cada mod modificado vive en `modificados/<nombre>/` (excluido del pack en `.packwizignore`) con:
+
+- `README.md`: origen (repo y **commit exacto**), licencia, qué se ha cambiado y por qué, de qué depende,
+  cómo se carga en el pack y cómo se prueba. Es lo que permite rehacer el cambio cuando salga una versión nueva.
+- `LICENSE` del original.
+- El código: el archivo entero si es pequeño (como `dynmap-trains/ctm-trains.js`), o un `.patch` contra el
+  commit de origen si es un mod Java grande (`git diff <commit> > cambios.patch`), más un `build.sh` que clone,
+  aplique el parche y compile.
+
+### Cómo llega a jugadores y servidor
+
+- **Scripts y archivos web** (addons de BlueMap, CSS): Cloudflare Pages sirve el repo entero, así que quedan en
+  `https://losresidentespack.pages.dev/modificados/<nombre>/<archivo>`. Se referencian desde una config del pack
+  (por ejemplo `config/bluemap/webapp.conf` → `scripts`). Ojo: un cambio en `main` llega al momento a quien
+  abra el mapa, sin reiniciar el servidor.
+- **Jars**: se compilan con Java 21 (`./gradlew build`; si el PC no tiene el 21, baja un Temurin 21 al
+  scratchpad desde `api.adoptium.net`). El jar **no** va al repo: súbelo como asset a una Release propia
+  (`gh release create mod-<nombre>-<versión> <jar> --title ... --notes ...`, sin la `v` delante para no
+  disparar la Action del pack) y añádelo con
+  `packwiz url add <nombre> <url-del-asset>`. Revisa el `side` del `.pw.toml` como con cualquier mod.
+  Pon en el nombre del archivo que es nuestro (`<mod>-<versión>-losresidentes.jar`) para no confundirlo con el oficial.
+- Si el mod original está en Modrinth y nuestra versión lo sustituye, quita el suyo con `packwiz remove`.
+
+### Probarlo
+
+Igual que cualquier mod (pasos 3 a 5 de arriba): un mod modificado es "lo nuestro" y se prueba a fondo.
+Para addons web, mira el resultado en un navegador (Chrome DevTools MCP) con datos reales y, si hace falta,
+falsos: cambio de mapa, recarga y que no se rompa con el refresco del propio mapa. Recarga siempre en
+una pestaña nueva o aislada, porque la caché del navegador enseña la versión anterior del script.
+
+### Al actualizar el original
+
+Lee el `README.md` de su carpeta, compara el commit de origen con el nuevo (`git log <viejo>..<nuevo>`),
+reaplica los cambios, actualiza el commit en el README y repite las pruebas.
+
 ## Reglas que ya nos han mordido
 
 - **Distant Horizons fijado en 3.2.0**: la 3.3.0 desactiva los shaders de Iris sin avisar,
@@ -200,13 +252,17 @@ Actualiza la lista de mods y las notas del `README.md` si cambia algo que vea el
   Aeronautics Hot Air Fix. No los quites.
 - **Descartados**: C2ME (alfa, choca con Create, Sable y DH), ServerCore (se pisa con Lithium),
   Sinytra Connector (en general), Carry On (el usuario no lo quiere).
-- **Puertos**: 25565 TCP + **UDP** (Sable) y 8100 (BlueMap). Si un mod nuevo abre puertos, documéntalo en el README
+- **Puertos**: 25565 TCP + **UDP** (Sable), 8100 (BlueMap) y 3876 (Create Track Map). Si un mod nuevo abre puertos, documéntalo en el README
   y en `server/panel/docker-compose.yml`, y piensa si pasa por el túnel de Cloudflare (solo TCP y HTTP).
 - **authlogic** hace seguro el `online-mode=false` (premium verificados con Mojang, no premium con llave por servidor).
   Va en los dos lados y necesita Architectury ≥ 13.0.8. `start.sh`/`start.bat` fuerzan `online-mode=false`. Si se quita, el servidor queda abierto a suplantaciones.
   La carpeta `authlogic/` del servidor guarda su llave: si se pierde, los no premium ven "Server Key Changed" y
   tienen que borrar su `authlogic/client_servers.json`. Las pruebas con un servidor nuevo en la misma dirección dan ese aviso.
   `tools/depcheck.py` da un falso `VERSION?` de Architectury (lee 13.0.6 aunque el jar sea la 13.0.11).
+- **Trenes en BlueMap**: Create Track Map (fork de AyOhEe) + `modificados/dynmap-trains/ctm-trains.js`, cargado desde
+  `config/bluemap/webapp.conf`, que **no** es `preserve`: cualquier cambio a esa config se hace en el repo.
+  Si se actualiza BlueMap, comprueba que el script sigue funcionando (usa su API interna de marcadores).
+  CTM y Kotlin for Forge son solo de servidor y no registran canales de red.
 - **Modflared** debe seguir en el pack mientras se use el túnel. Si se cambia o actualiza, revisa `docs/modflared.md`.
 - Un "trozo de terreno flotante" puede ser terreno vanilla real. Compara con un servidor vanilla
   y el mismo seed antes de culpar a un mod de generación.

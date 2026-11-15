@@ -17,6 +17,7 @@ services:
       - "25565:25565"   # Minecraft
       - "25565:25565/udp"  # Sable (barcos/aviones de Aeronautics)
       - "8100:8100"     # BlueMap (web)
+      - "3876:3876"     # Create Track Map (trenes en BlueMap)
     volumes:
       - ./data:/data
     restart: unless-stopped

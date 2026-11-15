@@ -16,6 +16,7 @@ services:
       - "25565:25565"       # Minecraft
       - "25565:25565/udp"   # Sable (barcos/aviones de Aeronautics)
       - "8100:8100"         # BlueMap (mapa web)
+      - "3876:3876"         # Create Track Map (trenes en BlueMap y su propio mapa)
     volumes:
       - ./crafty/backups:/crafty/backups
       - ./crafty/logs:/crafty/logs
@@ -37,7 +38,7 @@ services:
 
   # Cloudflare Tunnel (opcional). Solo arranca si .env tiene COMPOSE_PROFILES=tunnel y CF_TUNNEL_TOKEN.
   # Las rutas (panel, juego, mapa) se configuran en el panel de Cloudflare Zero Trust apuntando a
-  # https://crafty:8443, tcp://crafty:25565 y http://crafty:8100. Ver README.
+  # https://crafty:8443, tcp://crafty:25565, http://crafty:8100 y http://crafty:3876 (ruta /api del mapa). Ver README.
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared

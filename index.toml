@@ -6,6 +6,10 @@ hash = "b129270ea1cc8f71ac53883fe802a26986d4748a7e1be72b208794c178278464"
 preserve = true
 
 [[files]]
+file = "config/bluemap/webapp.conf"
+hash = "062b9795a86b63cfbd9cf35eb6f58e1ccf0ed2a5687dfad2152475acbf6d31be"
+
+[[files]]
 file = "config/iris.properties"
 hash = "efe0c30620affee4a63c94309643da1b5a10d9b411d292f1394bd233489a7334"
 preserve = true
