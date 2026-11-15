@@ -109,6 +109,11 @@ hash = "3b8895369640b2a52d3e05f7186185ba6798e44d513f11c5427a0fe9c16769e9"
 metafile = true
 
 [[files]]
+file = "mods/create-connected.pw.toml"
+hash = "6ac362d60bc8b13e03a5b6b9cdf9c7676f65d3e89e87c66f18514e7ee164cdb0"
+metafile = true
+
+[[files]]
 file = "mods/create-railways-navigator.pw.toml"
 hash = "c0cb2bd911bed59edcc68e7c1e8e044acb51e791ff0d5f376138097def308cb6"
 metafile = true
@@ -266,6 +271,11 @@ metafile = true
 [[files]]
 file = "mods/ok-zoomer.pw.toml"
 hash = "413494b5ba534461e22545173a8cc6e98b04962a0ee9514498b830b99d4acabe"
+metafile = true
+
+[[files]]
+file = "mods/polymorph.pw.toml"
+hash = "d935e4ce118d15c88b10809df85e801f0e9577855f870f3c28e5a0bd5e7fecf6"
 metafile = true
 
 [[files]]
