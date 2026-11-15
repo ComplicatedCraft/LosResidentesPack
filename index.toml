@@ -1,6 +1,11 @@
 hash-format = "sha256"
 
 [[files]]
+file = "config/DistantHorizons.toml"
+hash = "b129270ea1cc8f71ac53883fe802a26986d4748a7e1be72b208794c178278464"
+preserve = true
+
+[[files]]
 file = "config/iris.properties"
 hash = "efe0c30620affee4a63c94309643da1b5a10d9b411d292f1394bd233489a7334"
 preserve = true
@@ -105,6 +110,11 @@ hash = "c0cb2bd911bed59edcc68e7c1e8e044acb51e791ff0d5f376138097def308cb6"
 metafile = true
 
 [[files]]
+file = "mods/create-track-map-unofficial-fork.pw.toml"
+hash = "8fd7565127609d043c8aaabf69b62f32cc27ba00273870b6188f350c193aaef0"
+metafile = true
+
+[[files]]
 file = "mods/create.pw.toml"
 hash = "dcaf5f2e28db0b9a127d0167456832341045ddc9aec058c3d9fcf53f618d2404"
 metafile = true
@@ -187,6 +197,11 @@ metafile = true
 [[files]]
 file = "mods/just-enough-resources-jer.pw.toml"
 hash = "f4b16a8adf88925b034003ea4c3997fa8d149034f714cbadf591645f61f8c5de"
+metafile = true
+
+[[files]]
+file = "mods/kotlin-for-forge.pw.toml"
+hash = "7be2f2fbf5fd46524909a70b6c67eef759dbe20e56e3ceea5fcf56dbd339876e"
 metafile = true
 
 [[files]]

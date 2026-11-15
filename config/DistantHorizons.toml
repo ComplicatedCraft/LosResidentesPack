@@ -1,0 +1,2 @@
+[client.advanced.autoUpdater]
+	enableAutoUpdater = false
