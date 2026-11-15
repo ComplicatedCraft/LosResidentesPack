@@ -6,6 +6,11 @@ hash = "efe0c30620affee4a63c94309643da1b5a10d9b411d292f1394bd233489a7334"
 preserve = true
 
 [[files]]
+file = "config/jei/jei-client.ini"
+hash = "eaf7fbd74bf31ce6d8a1785d98df8b403d35869a560b672da5b0f5a8e862333f"
+preserve = true
+
+[[files]]
 file = "config/rrls.toml"
 hash = "020a81481358bfbabd1b5dd6162ecd5710fc7c600ce2ffdc1eebeef0bf1966f3"
 
