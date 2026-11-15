@@ -349,6 +349,8 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 
 **Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel. authlogic (los dos lados) para el modo offline con premium automáticos y no premium con contraseña de una sola vez.
 
+**WorldEdit** (solo cliente): funciona en mundos de un jugador. En el servidor no está instalado, así que allí sus comandos no existen.
+
 **Optimización:**
 
 - Cliente y servidor: ModernFix, FerriteCore, Lithium, Clumps y spark.
