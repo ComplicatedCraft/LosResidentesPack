@@ -175,6 +175,16 @@ hash = "db1c1e6382878b78e994dba1b9026935f8d1c5ca685c89d2437858e0a0dcab58"
 metafile = true
 
 [[files]]
+file = "mods/jei.pw.toml"
+hash = "b0c37ca9826781a6bf1373ae02a141b4202037515eb071ec2327410771de6ea5"
+metafile = true
+
+[[files]]
+file = "mods/just-enough-resources-jer.pw.toml"
+hash = "f4b16a8adf88925b034003ea4c3997fa8d149034f714cbadf591645f61f8c5de"
+metafile = true
+
+[[files]]
 file = "mods/libjf.pw.toml"
 hash = "3ca25851146b6e949e1ba841767eb76f73920f9cf04f33ce827a8a88f17c5de0"
 metafile = true
@@ -192,6 +202,11 @@ metafile = true
 [[files]]
 file = "mods/mcmouser.pw.toml"
 hash = "b8d77289512b9a132f522af57a73d9b1f1dae3ecbc7b0f1a0809dde733fd2943"
+metafile = true
+
+[[files]]
+file = "mods/mezzconfig.pw.toml"
+hash = "f1fecbcbee6806a14efb3bd38ccf10166b48004967fbe72b6c31224e5e9fc5ea"
 metafile = true
 
 [[files]]
