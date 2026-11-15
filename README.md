@@ -370,6 +370,8 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 
 **Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel. authlogic (los dos lados) para el modo offline con premium automáticos y no premium con contraseña de una sola vez.
 
+**Vanilla Backport** y **Tiny Takeover Backport** (los dos lados): traen contenido de versiones nuevas (mobs, bloques, crías rediseñadas, Golden Dandelion, etiquetas crafteables). Se configuran desde el menú de mods. Tiny Takeover necesita YACL también en el servidor, aunque Modrinth diga que es solo de cliente.
+
 **WorldEdit** (solo cliente): funciona en mundos de un jugador. En el servidor no está instalado, así que allí sus comandos no existen.
 
 **Optimización:**

@@ -274,6 +274,11 @@ hash = "413494b5ba534461e22545173a8cc6e98b04962a0ee9514498b830b99d4acabe"
 metafile = true
 
 [[files]]
+file = "mods/platform.pw.toml"
+hash = "a76b6068b10171b1fc244d5cb0a9dfbd0694b33e25c62eeeb5726c73d297cd3d"
+metafile = true
+
+[[files]]
 file = "mods/polymorph.pw.toml"
 hash = "d935e4ce118d15c88b10809df85e801f0e9577855f870f3c28e5a0bd5e7fecf6"
 metafile = true
@@ -344,6 +349,16 @@ hash = "33eab1ec1f2b6a02756c74817832b56960b689f112690ecf37f8ce7f8077589f"
 metafile = true
 
 [[files]]
+file = "mods/tiny-takeover-backport.pw.toml"
+hash = "5ec92e03aeb8ab74d62783550ac85d92b5b2f411de98ec4dfd961dd79d2e0d52"
+metafile = true
+
+[[files]]
+file = "mods/vanillabackport.pw.toml"
+hash = "0ea8ab3c8eebc336062f5e2da28c50f460fdc555913a9a66e4f27972c3a5e1ef"
+metafile = true
+
+[[files]]
 file = "mods/watermedia.pw.toml"
 hash = "03a442894e03f9ebe0657ea717a01ea53718ac785a3b20bdcab647e5198902ee"
 metafile = true
@@ -355,7 +370,7 @@ metafile = true
 
 [[files]]
 file = "mods/yacl.pw.toml"
-hash = "1f47c89af2b4c6ab92735d68e58412d0b369f7035818e58d02f5982f7fc1186a"
+hash = "539f362e9e192cf3b2813e0dfdfc51a5e6814129c6e82a9733842529beea6242"
 metafile = true
 
 [[files]]

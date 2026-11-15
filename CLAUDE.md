@@ -263,6 +263,7 @@ reaplica los cambios, actualiza el commit en el README y repite las pruebas.
   `config/bluemap/webapp.conf`, que **no** es `preserve`: cualquier cambio a esa config se hace en el repo.
   Si se actualiza BlueMap, comprueba que el script sigue funcionando (usa su API interna de marcadores).
   CTM y Kotlin for Forge son solo de servidor y no registran canales de red.
+- **YACL va en `both`**, no en `client`: Tiny Takeover Backport la usa en código común y el servidor crashea sin ella (`NoClassDefFoundError: dev/isxander/yacl3`), aunque su `mods.toml` la marque `side = "CLIENT"`.
 - **Modflared** debe seguir en el pack mientras se use el túnel. Si se cambia o actualiza, revisa `docs/modflared.md`.
 - Un "trozo de terreno flotante" puede ser terreno vanilla real. Compara con un servidor vanilla
   y el mismo seed antes de culpar a un mod de generación.
