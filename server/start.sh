@@ -35,6 +35,10 @@ fi
 # RAM por defecto (cámbiala en user_jvm_args.txt)
 grep -q '^[^#]*-Xmx' user_jvm_args.txt 2>/dev/null || printf '\n-Xms6G -Xmx6G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200\n' >> user_jvm_args.txt
 
+# authlogic necesita online-mode=false (los premium se siguen verificando con Mojang)
+if [ -f server.properties ]; then sed -i.bak 's/^online-mode=.*/online-mode=false/' server.properties && rm -f server.properties.bak
+else echo online-mode=false > server.properties; fi
+
 echo ">> Sincronizando mods..."
 [ -f packwiz-installer-bootstrap.jar ] || fetch https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar packwiz-installer-bootstrap.jar
 "$JAVA" -jar packwiz-installer-bootstrap.jar -g -s server "$PACK"

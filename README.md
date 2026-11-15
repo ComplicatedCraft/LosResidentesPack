@@ -90,6 +90,17 @@ La primera vez se pregunta por:
 - En Apple Silicon (M1/M2/M3/M4) usa Java 21 **arm64**. Prism lo hace solo; con un Java x64 bajo Rosetta irá mucho peor.
 - Con 8 GB de RAM: dale 4-5 GB al juego, usa Reimagined o quita los shaders, y desactiva Distant Horizons.
 
+## Entrar al servidor (premium y no premium)
+
+El servidor funciona en modo offline con **authlogic**, que protege los nombres:
+
+- **Con cuenta premium:** entras directamente, como siempre.
+- **Sin cuenta premium:** la primera vez que abras *Multijugador* te pide una contraseña (mínimo 8 caracteres). Ponla, dale a *Save* y ya está: a partir de ahí entras directamente, sin volver a escribirla. Nadie más puede entrar con tu nombre.
+- La contraseña no se puede recuperar. Si la pierdes, o cambias de ordenador sin copiar la carpeta, pídele a un admin que te resetee (`/authlogic reset <nombre>`).
+- La misma contraseña te vale para cualquier servidor con authlogic: no te la vuelve a pedir.
+- Si al entrar sale **"Security Warning: Server Key Changed"**, el servidor se ha reinstalado. Pregunta a un admin si es así y, si lo es, borra el archivo `authlogic/client_servers.json` de tu instancia y vuelve a entrar (tu contraseña no se pierde, está en otro archivo).
+- **No compartas la carpeta `authlogic/`** de tu instancia: es tu llave.
+
 ## Servidores detrás de Cloudflare Tunnel
 
 El pack incluye **Modflared**: si el servidor está publicado con un Cloudflare Tunnel (por ejemplo `mc.tudominio.com`), basta con añadirlo como un servidor normal. No hay que instalar nada más.
@@ -276,7 +287,8 @@ El instalador de NeoForge está [aquí](https://maven.neoforged.net/releases/net
 
 **`server.properties`:**
 
-- `online-mode=false` permite jugar sin cuenta premium y que `/player` de Carpet funcione sin problemas. Ojo: en modo offline cualquiera puede entrar con cualquier nombre. Activa la lista blanca (`white-list=true` y `/whitelist add <nombre>`).
+- `online-mode=false` es obligatorio (`start.sh` y `start.bat` lo ponen solos). Con **authlogic** los premium se siguen verificando con Mojang y los no premium quedan atados a su contraseña, así que nadie puede suplantar a otro. Los bots de Carpet (`/player`) funcionan igual.
+- **authlogic:** `/authlogic list` muestra los registrados, `/authlogic reset <nombre>` borra la llave de alguien que perdió su contraseña, y `/authlogic whitelist on|add|remove` es su lista blanca. Sus datos están en la carpeta `authlogic/` del servidor: entra en los backups y **no la compartas**. Si se pierde (por ejemplo al reinstalar el servidor sin ella), todos los no premium verán "Server Key Changed" y tendrán que borrar su `authlogic/client_servers.json`.
 - `view-distance=10` y `simulation-distance=8` van bien. Distant Horizons se encarga de lo lejano.
 
 **BlueMap:** la primera vez, abre `config/bluemap/core.conf`, pon `accept-download: true` y reinicia. El mapa queda en `http://<ip>:8100`.
@@ -330,7 +342,7 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 
 **Shaders con Create Aeronautics:** Iris Flywheel Compat, Iris Veil Compat y Aeronautics Hot Air Fix hacen que barcos, alas y globos se vean bien con shaders.
 
-**Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel.
+**Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel. authlogic (los dos lados) para el modo offline con premium automáticos y no premium con contraseña de una sola vez.
 
 **Optimización:**
 

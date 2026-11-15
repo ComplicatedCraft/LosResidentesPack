@@ -16,6 +16,9 @@ if not exist "libraries\net\neoforged\neoforge\%NEO%" (
 
 findstr /r /c:"^-Xm" user_jvm_args.txt >nul 2>&1 || (echo.& echo -Xms6G -Xmx6G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200)>> user_jvm_args.txt
 
+rem authlogic necesita online-mode=false (los premium se siguen verificando con Mojang)
+powershell -NoProfile -Command "$f='server.properties'; if (Test-Path $f) { (Get-Content $f) -replace '^online-mode=.*','online-mode=false' | Set-Content $f } else { 'online-mode=false' | Set-Content $f }"
+
 echo ^>^> Sincronizando mods...
 if not exist packwiz-installer-bootstrap.jar curl -fsSL -o packwiz-installer-bootstrap.jar https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar
 java -jar packwiz-installer-bootstrap.jar -g -s server "%PACK%" || ( pause & exit /b 1 )

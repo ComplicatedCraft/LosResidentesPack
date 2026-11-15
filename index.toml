@@ -16,12 +16,17 @@ metafile = true
 
 [[files]]
 file = "mods/architectury-api.pw.toml"
-hash = "21347d7f9c96cebacb7238dbef2670e2906a11572606016c8184e9485947dacc"
+hash = "187eafde5974beee1263538b462b7b8fe2fc8948c5d413980d9796d55928580b"
 metafile = true
 
 [[files]]
 file = "mods/attributes.pw.toml"
 hash = "11ab8a365c5bed4941664f25b31f51ee4db08885c49a0fce64cba5aa5555e2cc"
+metafile = true
+
+[[files]]
+file = "mods/authlogic.pw.toml"
+hash = "78b29f20cc8d32bf6a2413a2c68e0e593d37e2155c008c860500ba8cf1e0d16d"
 metafile = true
 
 [[files]]

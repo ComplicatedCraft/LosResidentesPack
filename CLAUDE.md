@@ -160,12 +160,20 @@ Lo de "carga sin errores" no basta. El bug de los shaders no daba ningún error 
 
 - Prism Launcher hereda `WAYLAND_DISPLAY` y abre ventanas en el escritorio real. Lánzalo con
   `env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb xvfb-run ...`.
+- **RAM:** el PC de pruebas tiene 14 GB. Servidor con 6 GB más cliente con 3 GB, más procesos colgados, lo llevaron
+  a quedarse sin memoria y la sesión se cortó. En pruebas pon el servidor a `-Xmx3G` en `user_jvm_args.txt`, nunca
+  tengas dos clientes a la vez y mata por PID el cliente, el servidor y el `Xvfb` antes de lanzar otro.
 - Nunca uses `pkill -f <patrón>` si el patrón aparece en tu propia línea de comandos, porque mata tu shell.
   Mata por PID.
 - Una carpeta de cliente nueva enseña la pantalla de accesibilidad y no entra sola al servidor.
   El `options.txt` del pack lo evita con `onboardAccessibility:false` y `version:3955`.
 
 ### 6. Publicar
+
+**Cada cambio que se sube a `main` va con su tag de Release, siempre.** Así la Action regenera
+`LosResidentes-Prism.zip`, `LosResidentes-Server.zip` y el `.mrpack`, y nadie se descarga un zip viejo.
+No se da una tarea por terminada sin el tag y sin comprobar que la Release tiene los tres archivos
+(`gh run watch` y `gh release view <tag>`).
 
 ```sh
 packwiz refresh
@@ -194,6 +202,11 @@ Actualiza la lista de mods y las notas del `README.md` si cambia algo que vea el
   Sinytra Connector (en general), Carry On (el usuario no lo quiere).
 - **Puertos**: 25565 TCP + **UDP** (Sable) y 8100 (BlueMap). Si un mod nuevo abre puertos, documéntalo en el README
   y en `server/panel/docker-compose.yml`, y piensa si pasa por el túnel de Cloudflare (solo TCP y HTTP).
+- **authlogic** hace seguro el `online-mode=false` (premium verificados con Mojang, no premium con llave por servidor).
+  Va en los dos lados y necesita Architectury ≥ 13.0.8. `start.sh`/`start.bat` fuerzan `online-mode=false`. Si se quita, el servidor queda abierto a suplantaciones.
+  La carpeta `authlogic/` del servidor guarda su llave: si se pierde, los no premium ven "Server Key Changed" y
+  tienen que borrar su `authlogic/client_servers.json`. Las pruebas con un servidor nuevo en la misma dirección dan ese aviso.
+  `tools/depcheck.py` da un falso `VERSION?` de Architectury (lee 13.0.6 aunque el jar sea la 13.0.11).
 - **Modflared** debe seguir en el pack mientras se use el túnel. Si se cambia o actualiza, revisa `docs/modflared.md`.
 - Un "trozo de terreno flotante" puede ser terreno vanilla real. Compara con un servidor vanilla
   y el mismo seed antes de culpar a un mod de generación.
@@ -201,5 +214,5 @@ Actualiza la lista de mods y las notas del `README.md` si cambia algo que vea el
 ## Al terminar
 
 Cuéntale al usuario qué mods se han añadido y por qué, cuál ha sido la alternativa si el que pedía
-no existía para NeoForge, qué se ha probado y qué no (por ejemplo macOS o Windows), y si hace falta
-crear un tag de Release.
+no existía para NeoForge, qué se ha probado y qué no (por ejemplo macOS o Windows), y el enlace a la Release
+que se ha publicado.
