@@ -13,7 +13,7 @@ docker compose version >/dev/null 2>&1 || sudo docker compose version >/dev/null
 sudo systemctl enable --now docker
 
 echo ">> Preparando $DIR..."
-mkdir -p "$DIR"/crafty/{backups,logs,servers,config,import}
+mkdir -p "$DIR"/crafty/{backups,logs,servers,config,import} "$DIR"/rclone
 cd "$DIR"
 curl -fsSL -o docker-compose.yml "$REPO/server/panel/docker-compose.yml"
 curl -fsSL -o crafty/import/LosResidentes-Server.zip \

@@ -173,7 +173,28 @@ En el servidor, pestaña **Backups**:
 
 Los backups se guardan en `~/losresidentes/crafty/backups`. Se pueden bajar desde el panel o por SFTP (carpeta `backups`). Para restaurar uno, usa **Backups → Restore** en el panel.
 
-> Un backup en el mismo disco no te protege si el disco muere. De vez en cuando bájate el último por SFTP, o cópialos a un USB o a la nube (por ejemplo con `rclone`).
+> Un backup en el mismo disco no te protege si el disco muere. De vez en cuando bájate el último por SFTP, o activa la copia a Google Drive de abajo.
+
+#### Copia a Google Drive (opcional)
+
+Un contenedor `rclone` sube a Drive **solo el último backup**, como un único archivo `LosResidentes/ultimo-backup.zip` que se sustituye cada vez. Cada hora mira si Crafty ha hecho uno nuevo (ignora los que llevan menos de 5 minutos, por si siguen escribiéndose).
+
+1. En **tu ordenador** (el servidor no tiene navegador), instala [rclone](https://rclone.org/install/) y ejecuta `rclone authorize "drive"`. Se abre el navegador, entras con la cuenta de Google y en la terminal sale un token `{"access_token":...}`. Cópialo.
+2. En el servidor, crea `~/losresidentes/rclone/rclone.conf` con esto (pega tu token):
+
+   ```ini
+   [drive]
+   type = drive
+   scope = drive
+   token = {"access_token":"..."}
+   ```
+
+3. Añade a `~/losresidentes/.env` la línea `COMPOSE_PROFILES=drive` (si ya usas el túnel: `COMPOSE_PROFILES=tunnel,drive`) y ejecuta `sudo docker compose up -d`.
+4. Comprueba con `sudo docker logs rclone`: debe salir "Subiendo ..." y "Subido.". Si fallara, se reintenta a la hora siguiente.
+
+- La carpeta de destino se cambia con `DRIVE_DEST=drive:OtraCarpeta` en el `.env`.
+- Solo copia el último: en Drive no hay histórico. Si quieres más copias, deja también las de Crafty (Max Backups).
+- El token de Google puede caducar si lo dejas mucho tiempo sin usar o si el proyecto de rclone queda en modo de pruebas. Si deja de subir, repite el paso 1 y 2. Para evitarlo, crea tu propio *client ID* en Google Cloud y añade `client_id` y `client_secret` al `rclone.conf`.
 
 ### 4. Acceso desde fuera
 

@@ -47,3 +47,34 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CF_TUNNEL_TOKEN:-}
+
+  # Copia a Google Drive del ULTIMO backup de Crafty (opcional). Solo arranca con COMPOSE_PROFILES=drive
+  # (o tunnel,drive) y un rclone/rclone.conf con un remoto "drive". Cada hora mira si hay un backup nuevo y
+  # lo sube como un unico archivo (ultimo-backup.zip), sustituyendo al anterior. Ver README, "Copia a Google Drive".
+  rclone:
+    image: rclone/rclone:latest
+    container_name: rclone
+    profiles: ["drive"]
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    environment:
+      - RCLONE_CONFIG=/config/rclone.conf
+      - DRIVE_DEST=${DRIVE_DEST:-drive:LosResidentes}
+    volumes:
+      - ./crafty/backups:/backups:ro
+      - ./rclone:/config
+    command:
+      - |
+        while true; do
+          # el mas reciente que lleve 5+ min sin tocarse (asi no subimos uno a medio escribir)
+          f=$$(find /backups -name '*.zip' -mmin +5 | xargs -r ls -t | head -1)
+          if [ -n "$$f" ]; then
+            id="$$f $$(stat -c %Y "$$f")"
+            if [ "$$id" != "$$(cat /config/ultimo 2>/dev/null)" ]; then
+              echo "Subiendo $$f"
+              rclone copyto "$$f" "$$DRIVE_DEST/ultimo-backup.zip" --drive-chunk-size 64M \
+                && echo "$$id" > /config/ultimo && echo "Subido."
+            fi
+          fi
+          sleep 3600
+        done
