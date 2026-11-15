@@ -7,6 +7,7 @@ COMMIT=8d1c3db
 RINKU_VERSION_ID=JOrwMXrE   # Rinku 3.0.4-1.21.1 en Modrinth (solo para compilar, no se empaqueta)
 HERE=$(cd "$(dirname "$0")" && pwd)
 W=$(mktemp -d)
+trap 'rm -rf "$W"' EXIT
 git clone -q https://github.com/Agushh/webdisplays-aero-compat.git "$W/src"
 cd "$W/src" && git checkout -q $COMMIT && git apply "$HERE/cambios.patch"
 # El build espera libs/rinku-neoforge-<ver>-mod.jar: es el jar anidado de la release de Rinku
