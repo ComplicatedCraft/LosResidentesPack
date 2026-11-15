@@ -294,6 +294,11 @@ hash = "d9f96731b2d9275c14dfc88f352df8b25c1363becabcb1d3d9b685df19b87c7b"
 metafile = true
 
 [[files]]
+file = "mods/rinku.pw.toml"
+hash = "ec27529def0357a6b3fd837b7b3567e1fa3f0c0e22bbe4c96170f185566a58b5"
+metafile = true
+
+[[files]]
 file = "mods/rrls.pw.toml"
 hash = "624e7455a378da6bce5b9fdd97e27c4125472cdac0173c73a8406f2067ef07a9"
 metafile = true
@@ -361,6 +366,11 @@ metafile = true
 [[files]]
 file = "mods/watermedia.pw.toml"
 hash = "03a442894e03f9ebe0657ea717a01ea53718ac785a3b20bdcab647e5198902ee"
+metafile = true
+
+[[files]]
+file = "mods/webdisplays.pw.toml"
+hash = "882d3effa991dd1eaf5d57f3fb451f3caa60685dbb2710146c86db01c2b941c4"
 metafile = true
 
 [[files]]

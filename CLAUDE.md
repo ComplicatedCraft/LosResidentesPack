@@ -246,7 +246,7 @@ reaplica los cambios, actualiza el commit en el README y repite las pruebas.
   Para forzar un cambio de config en jugadores que ya lo tienen, el archivo **no** puede ser `preserve`
   y su **contenido tiene que cambiar**, porque packwiz-installer compara hashes.
 - **Teclas**: antes de añadir un mod con teclas, mira si choca con alguna. Ya están ocupadas
-  K (habilidades), R (Create Railways Navigator), C (zoom), O (shaders), F6 (activar/desactivar shaders)
+  K (habilidades), R (Create Railways Navigator), C (zoom), O (shaders), F6 (activar/desactivar shaders), V (ratón de WebDisplays)
   y Alt (Create, Copycats, Climbable Ropes).
 - **Sable/Veil (Aeronautics) y shaders**: necesitan Iris Flywheel Compat, Iris Veil Compat y
   Aeronautics Hot Air Fix. No los quites.
@@ -264,6 +264,8 @@ reaplica los cambios, actualiza el commit en el README y repite las pruebas.
   Si se actualiza BlueMap, comprueba que el script sigue funcionando (usa su API interna de marcadores).
   CTM y Kotlin for Forge son solo de servidor y no registran canales de red.
 - **YACL va en `both`**, no en `client`: Tiny Takeover Backport la usa en código común y el servidor crashea sin ella (`NoClassDefFoundError: dev/isxander/yacl3`), aunque su `mods.toml` la marque `side = "CLIENT"`.
+- **WebDisplays** es el fork de Agushh con nuestro parche (`modificados/webdisplays-aero-compat`). **Rinku va en `client`**: en un servidor dedicado
+  crashea, y nuestro parche hace que WebDisplays no lo necesite allí. No pongas Rinku en `both` ni quites el parche al actualizar.
 - **Modflared** debe seguir en el pack mientras se use el túnel. Si se cambia o actualiza, revisa `docs/modflared.md`.
 - Un "trozo de terreno flotante" puede ser terreno vanilla real. Compara con un servidor vanilla
   y el mismo seed antes de culpar a un mod de generación.

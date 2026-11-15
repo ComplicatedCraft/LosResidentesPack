@@ -113,6 +113,7 @@ El pack incluye **Modflared**: si el servidor está publicado con un Cloudflare 
 | `C` | Zoom (rueda para acercar más) |
 | `O` | Elegir shaders |
 | `F6` | Activar/desactivar shaders (se ha movido desde `K` para no chocar con las habilidades) |
+| `V` | WebDisplays: usar el ratón en la pantalla que miras |
 
 ---
 
@@ -363,6 +364,7 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 - Dynmap → **BlueMap**
 - dynmap-trains → port propio para BlueMap en [`modificados/dynmap-trains`](modificados/dynmap-trains)
 - Create Track Map (sin versión para 1.21.1) → **Create Track Map: Unofficial Fork**
+- WebDisplays (sin versión para 1.21.1) → fork con compatibilidad Aeronautics, retocado en [`modificados/webdisplays-aero-compat`](modificados/webdisplays-aero-compat)
 - InventoryRollbackPlus → **InvHistory**
 - Continuity → **Continuity: NeoForged**
 
@@ -371,6 +373,8 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 **Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel. authlogic (los dos lados) para el modo offline con premium automáticos y no premium con contraseña de una sola vez.
 
 **Vanilla Backport** y **Tiny Takeover Backport** (los dos lados): traen contenido de versiones nuevas (mobs, bloques, crías rediseñadas, Golden Dandelion, etiquetas crafteables). Se configuran desde el menú de mods. Tiny Takeover necesita YACL también en el servidor, aunque Modrinth diga que es solo de cliente.
+
+**WebDisplays** (los dos lados): pantallas con navegador web, también dentro de naves de Aeronautics. Usa **Rinku** (solo cliente), que descarga Chromium (unos 100 MB) la primera vez que abres el juego; hasta que termina, las pantallas salen apagadas.
 
 **WorldEdit** (solo cliente): funciona en mundos de un jugador. En el servidor no está instalado, así que allí sus comandos no existen.
 

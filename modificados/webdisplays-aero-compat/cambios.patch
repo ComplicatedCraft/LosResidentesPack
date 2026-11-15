@@ -1,0 +1,936 @@
+diff --git a/src/main/java/net/montoyo/wd/SharedProxy.java b/src/main/java/net/montoyo/wd/SharedProxy.java
+index a36abd6..6b92f5e 100644
+--- a/src/main/java/net/montoyo/wd/SharedProxy.java
++++ b/src/main/java/net/montoyo/wd/SharedProxy.java
+@@ -4,7 +4,6 @@
+ 
+ package net.montoyo.wd;
+ 
+-import de.keksuccino.rinku.Rinku;
+ import com.mojang.authlib.GameProfile;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.resources.ResourceKey;
+@@ -39,7 +38,7 @@ public class SharedProxy {
+     }
+ 
+     public void init() {
+-        Rinku.scheduleForInit((cef) -> onCefInit());
++        // LosResidentes: Rinku es solo de cliente; se inicializa en ClientProxy.init()
+     }
+ 
+     public void postInit() {
+diff --git a/src/main/java/net/montoyo/wd/client/ClientProxy.java b/src/main/java/net/montoyo/wd/client/ClientProxy.java
+index 72dbbd2..1abc8c2 100644
+--- a/src/main/java/net/montoyo/wd/client/ClientProxy.java
++++ b/src/main/java/net/montoyo/wd/client/ClientProxy.java
+@@ -280,6 +280,12 @@ public class ClientProxy extends SharedProxy implements ResourceManagerReloadLis
+ 		NeoForge.EVENT_BUS.register(net.montoyo.wd.client.renderers.MinePadOverlayRenderer.class);
+ 	}
+ 	
++	@Override
++	public void init() {
++		// LosResidentes: movido desde SharedProxy para que el servidor dedicado no cargue Rinku
++		Rinku.scheduleForInit((cef) -> onCefInit());
++	}
++
+ 	@Override
+ 	public void onCefInit() {
+ 		minePadRenderer = new MinePadRenderer();
+@@ -1223,7 +1229,7 @@ public class ClientProxy extends SharedProxy implements ResourceManagerReloadLis
+ 	/**
+ 	 * KEYBINDS
+ 	 **/
+-	public static final KeyMapping KEY_MOUSE = new KeyMapping("webdisplays.key.toggle_mouse", GLFW.GLFW_KEY_R, "key.categories.misc");
++	public static final KeyMapping KEY_MOUSE = new KeyMapping("webdisplays.key.toggle_mouse", GLFW.GLFW_KEY_V, "key.categories.misc");
+ 	static boolean rDown = false;
+ 	public static boolean mouseOn = false;
+ 	
+diff --git a/src/main/java/net/montoyo/wd/config/ClientConfig.java b/src/main/java/net/montoyo/wd/config/ClientConfig.java
+new file mode 100644
+index 0000000..ae913fd
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/ClientConfig.java
+@@ -0,0 +1,151 @@
++package net.montoyo.wd.config;
++
++import net.neoforged.bus.api.IEventBus;
++import net.neoforged.fml.config.ModConfig;
++import net.montoyo.wd.WebDisplays;
++import net.montoyo.wd.config.annoconfg.AnnoCFG;
++import net.montoyo.wd.config.annoconfg.annotation.format.*;
++import net.montoyo.wd.config.annoconfg.annotation.value.Default;
++import net.montoyo.wd.config.annoconfg.annotation.value.DoubleRange;
++import net.montoyo.wd.config.annoconfg.annotation.value.IntRange;
++
++@Config(type = ModConfig.Type.CLIENT)
++public class ClientConfig {
++	@SuppressWarnings("unused")
++	private static AnnoCFG CFG;
++
++	public static void init(IEventBus bus) {
++		CFG = new AnnoCFG(bus, ClientConfig.class);
++	}
++
++	@Name("load_distance")
++	@Comment("How far (in blocks) you can be before a screen starts rendering")
++	@Translation("config.webdisplays.load_distance")
++	@DoubleRange(minV = 0, maxV = Double.MAX_VALUE)
++	@Default(valueD = 60)
++	public static double loadDistance = 60.0;
++
++	@Name("unload_distance")
++	@Comment("How far you can be before a screen stops rendering. Must be larger than load_distance.")
++	@Translation("config.webdisplays.unload_distance")
++	@DoubleRange(minV = 0, maxV = Double.MAX_VALUE)
++	@Default(valueD = 64)
++	public static double unloadDistance = 64.0;
++
++	@Name("pad_resolution")
++	@Comment({
++			"The resolution that minePads should use",
++			"Smaller values produce lower qualities, higher values produce higher qualities",
++			"Due to how web browsers work however, the larger this value is, the smaller text is",
++			"Also, higher values will invariably lag more",
++			"A good goto value for this would be the height of your monitor, in pixels",
++			"A standard monitor is (at least currently) 1080",
++	})
++	@Translation("config.webdisplays.pad_res")
++	@IntRange(minV = 0, maxV = Integer.MAX_VALUE)
++	@Default(valueI = 720)
++	public static int padResolution = 720;
++
++	@Name("screen_brightness")
++	@Comment({
++			"Controls the brightness of WebDisplays screens (0.0 to 1.0)",
++			"0.0 = completely dark, 0.5 = 50% brightness, 1.0 = full brightness",
++			"Lower values help when using shaders that make screens too bright",
++	})
++	@Translation("config.webdisplays.screen_brightness")
++	@DoubleRange(minV = 0.0, maxV = 1.0)
++	@Default(valueD = 1.0)
++	public static double screenBrightness = 1.0;
++
++	@Name("side_pad")
++	@Comment({
++			"When this is true, the minePad is placed off to the side of the screen when held, so it's visible but doesn't take up too much of the screen",
++			"When this is false, the minePad is placed closer to the center of the screen, allow it to be seen better, but taking up more of your view",
++	})
++	@Translation("config.webdisplays.side_pad")
++	@Default(valueBoolean = true)
++	public static boolean sidePad = true;
++
++	@Name("enable_spatial_audio")
++	@Comment({
++			"If true, video/audio playing on screens attenuates with distance (gets quieter as you walk away).",
++			"If false, screen audio plays at full volume regardless of distance (the old broken behavior — fixes user reports of audio being audible from miles away)."
++	})
++	@Translation("config.webdisplays.enable_spatial_audio")
++	@Default(valueBoolean = true)
++	public static boolean enableSpatialAudio = true;
++
++	@Name("audio_full_volume_distance")
++	@Comment({
++			"Distance (in blocks) at which screen audio plays at full volume.",
++			"Below this distance, no attenuation is applied."
++	})
++	@Translation("config.webdisplays.audio_full_volume_distance")
++	@DoubleRange(minV = 0, maxV = 1000)
++	@Default(valueD = 5.0)
++	public static double audioFullVolumeDistance = 5.0;
++
++	@Name("audio_silent_distance")
++	@Comment({
++			"Distance (in blocks) at which screen audio is fully muted.",
++			"Between full-volume distance and this, volume scales linearly.",
++			"Default matches unload_distance so audio fades to silent right as the screen visually unloads."
++	})
++	@Translation("config.webdisplays.audio_silent_distance")
++	@DoubleRange(minV = 1, maxV = 1000)
++	@Default(valueD = 64.0)
++	public static double audioSilentDistance = 64.0;
++
++	@Name("audio_max_volume_percent")
++	@Comment({
++			"Maximum volume (0-100) screen audio will play at when at or below the full-volume distance.",
++			"Lower values cap the loudness of screens overall."
++	})
++	@Translation("config.webdisplays.audio_max_volume_percent")
++	@DoubleRange(minV = 0, maxV = 100)
++	@Default(valueD = 100.0)
++	public static double audioMaxVolumePercent = 100.0;
++
++	@Comment({
++			"Options relating to input handling"
++	})
++	@CFGSegment("input")
++	public static class Input {
++		@Name("keyboard_camera")
++		@Comment({
++				"If this is on, then the camera will try to focus on the selected element while a keyboard is in use",
++				"Elsewise, it'll try to focus on the center of the screen",
++		})
++		@Translation("config.webdisplays.keyboard_camera")
++		@Default(valueBoolean = true)
++		public static boolean keyboardCamera = true;
++
++		@Name("switch_buttons")
++		@Comment("If the left and right buttons should be swapped when using a laser")
++		@Translation("config.webdisplays.switch_buttons")
++		@DoubleRange(minV = 0, maxV = Double.MAX_VALUE)
++		@Default(valueD = 30)
++		public static boolean switchButtons = true;
++	}
++
++	@SuppressWarnings("unused")
++	public static void postLoad() {
++		if (unloadDistance < loadDistance + 2.0)
++			unloadDistance = loadDistance + 2.0;
++		if (audioSilentDistance < audioFullVolumeDistance + 1.0)
++			audioSilentDistance = audioFullVolumeDistance + 1.0;
++
++		// cache pad resolution
++		WebDisplays.INSTANCE.padResY = padResolution;
++		WebDisplays.INSTANCE.padResX = WebDisplays.INSTANCE.padResY * WebDisplays.PAD_RATIO;
++
++		// cache unload/load distances
++		WebDisplays.INSTANCE.unloadDistance2 = unloadDistance * unloadDistance;
++		WebDisplays.INSTANCE.loadDistance2 = loadDistance * loadDistance;
++
++		// cache audio attenuation params (read by ScreenBlockEntity.updateTrackDistance)
++		WebDisplays.INSTANCE.ytVolume = (float) audioMaxVolumePercent;
++		WebDisplays.INSTANCE.avDist100 = (float) audioFullVolumeDistance;
++		WebDisplays.INSTANCE.avDist0 = (float) audioSilentDistance;
++	}
++}
+diff --git a/src/main/java/net/montoyo/wd/config/CommonConfig.java b/src/main/java/net/montoyo/wd/config/CommonConfig.java
+new file mode 100644
+index 0000000..0f729ed
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/CommonConfig.java
+@@ -0,0 +1,153 @@
++package net.montoyo.wd.config;
++
++import net.neoforged.bus.api.IEventBus;
++import net.neoforged.fml.config.ModConfig;
++import net.montoyo.wd.WebDisplays;
++import net.montoyo.wd.config.annoconfg.AnnoCFG;
++import net.montoyo.wd.config.annoconfg.annotation.format.*;
++import net.montoyo.wd.config.annoconfg.annotation.value.Default;
++import net.montoyo.wd.config.annoconfg.annotation.value.IntRange;
++import net.montoyo.wd.config.annoconfg.annotation.value.LongRange;
++
++@SuppressWarnings("DefaultAnnotationParam")
++@Config(type = ModConfig.Type.COMMON)
++public class CommonConfig {
++	@SuppressWarnings("unused")
++	private static AnnoCFG CFG;
++
++	public static void init(IEventBus bus) {
++		CFG = new AnnoCFG(bus, CommonConfig.class);
++	}
++
++	@Name("hard_recipes")
++	@Comment("If true, breaking the minePad is required to craft upgrades.")
++	@Translation("config.webdisplays.hard_recipes")
++	@Default(valueBoolean = true)
++	public static boolean hardRecipes = true;
++
++	@Name("join_message")
++	@Comment("Whether or not webdisplays should thank the user for using the mod")
++	@Translation("config.webdisplays.join_message")
++	@Default(valueBoolean = true)
++	public static boolean joinMessage = true;
++
++	@Name("disable_ownership_thief")
++	@Comment("If true, the ownership thief item will be disabled")
++	@Translation("config.webdisplays.disable_thief")
++	@Default(valueBoolean = false)
++	public static boolean disableOwnershipThief = false;
++
++	@Name("screen_broadcast_radius")
++	@Comment({
++			"Radius (in blocks) within which the server broadcasts screen updates (URL changes, ",
++			"clicks, sync state, etc.) to players. Default 128 covers larger venues like cinemas. ",
++			"Players outside this radius won't receive updates even if their client load_distance is higher."
++	})
++	@Translation("config.webdisplays.screen_broadcast_radius")
++	@IntRange(minV = 16, maxV = 512)
++	@Default(valueI = 128)
++	public static int screenBroadcastRadius = 128;
++
++	@Comment("Options for the browsers (both the minePad and the screens)")
++	@CFGSegment("browser_options")
++	public static class Browser {
++		@Name("blacklist")
++		@Comment("The page which screens should open up to when turning on")
++		@Translation("config.webdisplays.blacklist")
++		@Default(valueStr = "")
++		public static String[] blacklist = new String[0];
++
++		@Name("home_page")
++		@Comment("The page which screens should open up to when turning on")
++		@Translation("config.webdisplays.home_page")
++		@Default(valueStr = "mod://webdisplays/main.html")
++		public static String homepage = "mod://webdisplays/main.html";
++	}
++
++	@Comment("Options for video playback synchronization across players")
++	@CFGSegment("video_sync")
++	public static class VideoSync {
++		@Name("enabled")
++		@Comment("Enable video playback synchronization across all players viewing the same screen")
++		@Translation("config.webdisplays.sync_enabled")
++		@Default(valueBoolean = true)
++		public static boolean enabled = true;
++
++		@Name("sync_whitelist")
++		@Comment("List of domains where video sync is enabled. Use * to enable for all sites. Examples: youtube.com, hianime.to")
++		@Translation("config.webdisplays.sync_whitelist")
++		@Default(valueStr = "youtube.com,youtu.be,hianime.to,9animetv.to,9anime.to,aniwave.to")
++		public static String[] syncWhitelist = new String[]{"youtube.com", "youtu.be", "hianime.to", "9animetv.to", "9anime.to", "aniwave.to"};
++
++		@Name("sync_tolerance_seconds")
++		@Comment("Time difference (in seconds) before forcing a seek to sync. Lower = stricter sync but more seeking")
++		@Translation("config.webdisplays.sync_tolerance")
++		@IntRange(minV = 1, maxV = 30)
++		@Default(valueI = 3)
++		public static int syncToleranceSeconds = 3;
++
++		@Name("sync_interval_ms")
++		@Comment("How often (in milliseconds) the master player broadcasts their playback time")
++		@Translation("config.webdisplays.sync_interval")
++		@IntRange(minV = 500, maxV = 10000)
++		@Default(valueI = 2000)
++		public static int syncIntervalMs = 2000;
++	}
++
++	@Comment("Options for the in world screen blocks")
++	@CFGSegment("screen_options")
++	public static class Screen {
++		@Name("max_resolution_x")
++		@Comment("The maximum value screen's horizontal resolution, in pixels")
++		@Translation("config.webdisplays.max_res_x")
++		@IntRange(minV = 0, maxV = Integer.MAX_VALUE)
++		@Default(valueI = 1920)
++		public static int maxResolutionX = 1920;
++
++		@Name("max_resolution_y")
++		@Comment("The maximum value screen's vertical resolution, in pixels")
++		@Translation("config.webdisplays.max_res_y")
++		@IntRange(minV = 0, maxV = Integer.MAX_VALUE)
++		@Default(valueI = 1080)
++		public static int maxResolutionY = 1080;
++
++		@Name("max_width")
++		@Comment("The maximum width for the screen multiblock, in blocks")
++		@Translation("config.webdisplays.max_width")
++		@IntRange(minV = 0, maxV = Integer.MAX_VALUE)
++		@Default(valueI = 16)
++		public static int maxScreenSizeX = 16;
++
++		@Name("max_height")
++		@Comment("The maximum height for the screen multiblock, in blocks")
++		@Translation("config.webdisplays.max_height")
++		@IntRange(minV = 0, maxV = Integer.MAX_VALUE)
++		@Default(valueI = 16)
++		public static int maxScreenSizeY = 16;
++	}
++
++	@Comment("Options for the miniserver")
++	@CFGSegment("mini_server")
++	public static class MiniServ {
++		@Name("miniserv_port")
++		@Comment("The port used by miniserv. 0 to disable")
++		@Translation("config.webdisplays.miniserv_port")
++		@IntRange(minV = 0, maxV = Short.MAX_VALUE)
++		@Default(valueI = 25566)
++		public static int miniservPort = 25566;
++
++		@Name("miniserv_quota")
++		@Comment("The amount of data that can be uploaded to miniserv, in KiB (so 1024 = 1 MiO)")
++		@Translation("config.webdisplays.miniserv_quota")
++		@LongRange(minV = 0, maxV = Long.MAX_VALUE)
++		@Default(valueL = 1920)
++		public static long miniservQuota = 1024; //It's stored as a string anyway
++	}
++
++	@SuppressWarnings("unused")
++	public static void postLoad() {
++		WebDisplays.INSTANCE.miniservPort = MiniServ.miniservPort;
++		WebDisplays.INSTANCE.miniservQuota = MiniServ.miniservQuota * 1024L;
++		WebDisplays.INSTANCE.screenBroadcastRadius = screenBroadcastRadius;
++	}
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/AnnoCFG.java b/src/main/java/net/montoyo/wd/config/annoconfg/AnnoCFG.java
+new file mode 100644
+index 0000000..2b396bf
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/AnnoCFG.java
+@@ -0,0 +1,232 @@
++package net.montoyo.wd.config.annoconfg;
++
++import net.neoforged.neoforge.common.ModConfigSpec;
++import net.neoforged.bus.api.IEventBus;
++import net.neoforged.fml.ModLoadingContext;
++import net.neoforged.fml.config.ModConfig;
++import net.neoforged.fml.event.config.ModConfigEvent;
++import net.montoyo.wd.config.annoconfg.annotation.format.*;
++import net.montoyo.wd.config.annoconfg.annotation.value.Default;
++import net.montoyo.wd.config.annoconfg.annotation.value.DoubleRange;
++import net.montoyo.wd.config.annoconfg.annotation.value.IntRange;
++import net.montoyo.wd.config.annoconfg.annotation.value.LongRange;
++import net.montoyo.wd.config.annoconfg.handle.UnsafeHandle;
++import net.montoyo.wd.config.annoconfg.util.EnumType;
++import net.montoyo.wd.utilities.Log;
++
++import java.lang.reflect.AnnotatedElement;
++import java.lang.reflect.Field;
++import java.lang.reflect.Method;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.function.Supplier;
++
++public class AnnoCFG {
++	private ModConfigSpec mySpec;
++
++	private final HashMap<String, ConfigEntry> handles = new HashMap<>();
++
++	private static final ArrayList<AnnoCFG> configs = new ArrayList<>();
++	private final Method postInit;
++
++	public AnnoCFG(IEventBus bus, Class<?> clazz) {
++		// ModConfigEvent is abstract sealed — must subscribe to concrete subclasses
++		// (Loading + Reloading) so the listener actually fires. Previously subscribed
++		// to ModConfigEvent itself, which never fires directly → spec values were
++		// never copied into static fields, postLoad cached defaults into WebDisplays.INSTANCE.
++		bus.addListener((ModConfigEvent.Loading e) -> onConfigChange(e));
++		bus.addListener((ModConfigEvent.Reloading e) -> onConfigChange(e));
++		Log.dbg("config-init", "AnnoCFG ctor for %s", clazz.getSimpleName());
++		ModConfigSpec.Builder configBuilder = new ModConfigSpec.Builder();
++		setup("", configBuilder, clazz);
++		configs.add(this);
++		Log.dbg("config-init", "spec built for %s: mySpec=%s, handles=%d", clazz.getSimpleName(), mySpec, handles.size());
++
++		Method m = null;
++		try {
++			m = clazz.getDeclaredMethod("postLoad");
++		} catch (Throwable ignored) {
++		}
++		postInit = m;
++
++		Config configDescriptor = clazz.getAnnotation(Config.class);
++		if (configDescriptor != null) {
++			String pth = configDescriptor.path();
++			if (!pth.isEmpty()) pth = pth + "/";
++			switch (configDescriptor.type()) {
++				case SERVER -> create(ModConfig.Type.SERVER, pth + ModLoadingContext.get().getActiveNamespace() + "_server.toml");
++				case CLIENT -> create(ModConfig.Type.CLIENT, pth + ModLoadingContext.get().getActiveNamespace() + "_client.toml");
++				case COMMON -> create(ModConfig.Type.COMMON, pth + ModLoadingContext.get().getActiveNamespace() + "_common.toml");
++				default -> throw new RuntimeException("wat");
++			}
++		}
++	}
++
++	protected void setupCommentsAndTranslations(AnnotatedElement element, ModConfigSpec.Builder builder, String... additionalLines) {
++		Translation translation = element.getAnnotation(Translation.class);
++		Comment comment = element.getAnnotation(Comment.class);
++
++		StringBuilder builder1 = new StringBuilder();
++		if (comment != null) {
++			for (int i = 0; i < comment.value().length; i++) {
++				String s = comment.value()[i];
++				builder1.append(s);
++				if (i != comment.value().length - 1)
++					builder1.append("\n");
++			}
++		}
++		for (String additionalLine : additionalLines) builder1.append(additionalLine);
++		if (!builder1.isEmpty())
++			builder.comment(builder1.toString());
++
++		if (translation != null)
++			builder.translation(translation.value());
++	}
++
++	public void setup(String dir, ModConfigSpec.Builder builder, Class<?> clazz) {
++		if (dir.startsWith(".")) dir = dir.substring(1);
++
++		for (Field field : clazz.getFields()) {
++			if (field.canAccess(null)) {
++				Skip skip = field.getAnnotation(Skip.class);
++				if (skip != null) continue;
++
++				Name name = field.getAnnotation(Name.class);
++
++				String nameStr = field.getName();
++				if (name != null) nameStr = name.value();
++
++				setupCommentsAndTranslations(field, builder);
++
++				Supplier<?> value;
++
++				Default defaultValue = field.getAnnotation(Default.class);
++				try {
++					switch (EnumType.forClass(field.getType())) {
++						case INT -> {
++							IntRange range = field.getAnnotation(IntRange.class);
++							int v = defaultValue.valueI();
++							if (range != null) {
++								int min = range.minV();
++								int max = range.maxV();
++
++								value = builder.defineInRange(nameStr, v, min, max);
++							} else {
++								value = builder.define(nameStr, v);
++							}
++						}
++						case LONG -> {
++							LongRange range = field.getAnnotation(LongRange.class);
++							long v = defaultValue.valueL();
++							if (range != null) {
++								long min = range.minV();
++								long max = range.maxV();
++
++								value = builder.defineInRange(nameStr, v, min, max);
++							} else {
++								value = builder.define(nameStr, v);
++							}
++						}
++						case DOUBLE -> {
++							DoubleRange range = field.getAnnotation(DoubleRange.class);
++							double v = defaultValue.valueD();
++							if (range != null) {
++								double min = range.minV();
++								double max = range.maxV();
++
++								value = builder.defineInRange(nameStr, v, min, max);
++							} else {
++								value = builder.define(nameStr, v);
++							}
++						}
++						case BOOLEAN -> {
++							boolean b = defaultValue.valueBoolean();
++							value = builder.define(nameStr, b);
++						}
++						case OTHER -> {
++							Class<?> fieldType = field.getType();
++							if (fieldType.equals(String[].class)) {
++								Supplier<String> sup = builder.define(nameStr, defaultValue.valueStr());
++								value = () -> {
++									String v = sup.get();
++									return v.split(",");
++								};
++							} else if (fieldType.equals(String.class)) {
++								value = builder.define(nameStr, defaultValue.valueStr());
++							} else
++								throw new RuntimeException("NYI " + field.getType());
++						}
++						default -> throw new RuntimeException("NYI " + field.getType());
++					}
++				} catch (NullPointerException npe) {
++					String inf = "";
++					if (npe.getMessage().contains("\"value.Default\""))
++						inf = " this is likely due to a missing default.";
++					throw new RuntimeException("A null pointer occurred on " + field.getName() + inf, npe);
++				}
++
++				Object o;
++				try {
++					// without this line, this system freaks out due to using theUnsafe
++					//noinspection UnusedAssignment
++					o = field.get(null);
++				} catch (Throwable ignored) {
++				}
++				UnsafeHandle handle = new UnsafeHandle(field);
++				o = handle.get();
++				handle.set(o);
++
++				//noinspection FunctionalExpressionCanBeFolded
++				handles.put(dir + "." + nameStr, new ConfigEntry(
++						handle, value::get
++				));
++			}
++		}
++
++		// TODO: check if the nested class is a direct nesting
++		for (Class<?> nestMember : clazz.getClasses()) {
++			if (nestMember == clazz) continue;
++			if (!nestMember.getName().startsWith(clazz.getName())) continue;
++			CFGSegment segment = nestMember.getAnnotation(CFGSegment.class);
++			if (segment == null) {
++				System.out.println(nestMember);
++				throw new RuntimeException("NYI: default name");
++			}
++			String name = segment.value();
++
++			setupCommentsAndTranslations(nestMember, builder);
++
++			builder.push(name);
++			setup(dir + "." + name, builder, nestMember);
++			builder.pop();
++		}
++
++		mySpec = builder.build();
++	}
++
++	public void onConfigChange(ModConfigEvent event) {
++		boolean match = event.getConfig().getSpec() == mySpec || event.getConfig().getSpec().equals(mySpec);
++		Log.dbg("config-evt", "fired: eventClass=%s, eventSpec=%s, mySpec=%s, match=%b",
++				event.getClass().getSimpleName(), event.getConfig().getSpec(), mySpec, match);
++		if (!match) return; // only act on our own config
++
++		for (String s : handles.keySet()) {
++			ConfigEntry entry = handles.get(s);
++			entry.handle.set(entry.supplier.get());
++		}
++		Log.dbg("config-evt", "synced %d handles", handles.size());
++
++		if (postInit != null) {
++			try {
++				postInit.invoke(null);
++				Log.dbg("config-evt", "postLoad invoked");
++			} catch (Throwable err) {
++				err.printStackTrace();
++			}
++		}
++	}
++
++	public void create(ModConfig.Type type, String file) {
++		ModLoadingContext.get().getActiveContainer().registerConfig(type, mySpec, file);
++	}
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/ConfigEntry.java b/src/main/java/net/montoyo/wd/config/annoconfg/ConfigEntry.java
+new file mode 100644
+index 0000000..982cd9d
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/ConfigEntry.java
+@@ -0,0 +1,15 @@
++package net.montoyo.wd.config.annoconfg;
++
++import net.montoyo.wd.config.annoconfg.handle.UnsafeHandle;
++
++import java.util.function.Supplier;
++
++public class ConfigEntry {
++	UnsafeHandle handle;
++	Supplier<?> supplier;
++	
++	public ConfigEntry(UnsafeHandle handle, Supplier<?> supplier) {
++		this.handle = handle;
++		this.supplier = supplier;
++	}
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/CFGSegment.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/CFGSegment.java
+new file mode 100644
+index 0000000..3b1599e
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/CFGSegment.java
+@@ -0,0 +1,9 @@
++package net.montoyo.wd.config.annoconfg.annotation.format;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface CFGSegment {
++	String value();
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Comment.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Comment.java
+new file mode 100644
+index 0000000..981bd5f
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Comment.java
+@@ -0,0 +1,9 @@
++package net.montoyo.wd.config.annoconfg.annotation.format;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface Comment {
++	String[] value();
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Config.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Config.java
+new file mode 100644
+index 0000000..7f266bc
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Config.java
+@@ -0,0 +1,12 @@
++package net.montoyo.wd.config.annoconfg.annotation.format;
++
++import net.neoforged.fml.config.ModConfig;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface Config {
++	ModConfig.Type type();
++	String path() default "";
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Name.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Name.java
+new file mode 100644
+index 0000000..2963718
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Name.java
+@@ -0,0 +1,9 @@
++package net.montoyo.wd.config.annoconfg.annotation.format;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface Name {
++	String value();
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Skip.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Skip.java
+new file mode 100644
+index 0000000..b074463
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Skip.java
+@@ -0,0 +1,8 @@
++package net.montoyo.wd.config.annoconfg.annotation.format;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface Skip {
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Translation.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Translation.java
+new file mode 100644
+index 0000000..f6ebabe
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/format/Translation.java
+@@ -0,0 +1,9 @@
++package net.montoyo.wd.config.annoconfg.annotation.format;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface Translation {
++	String value();
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/Default.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/Default.java
+new file mode 100644
+index 0000000..e7b12b0
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/Default.java
+@@ -0,0 +1,16 @@
++package net.montoyo.wd.config.annoconfg.annotation.value;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface Default {
++	byte valueB() default 0;
++	short valueS() default 0;
++	int valueI() default 0;
++	long valueL() default 0;
++	float valueF() default 0;
++	double valueD() default 0;
++	boolean valueBoolean() default false;
++	String valueStr() default "";
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/DoubleRange.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/DoubleRange.java
+new file mode 100644
+index 0000000..51b8343
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/DoubleRange.java
+@@ -0,0 +1,10 @@
++package net.montoyo.wd.config.annoconfg.annotation.value;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface DoubleRange {
++	double minV();
++	double maxV();
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/IntRange.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/IntRange.java
+new file mode 100644
+index 0000000..60feb08
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/IntRange.java
+@@ -0,0 +1,10 @@
++package net.montoyo.wd.config.annoconfg.annotation.value;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface IntRange {
++	int minV();
++	int maxV();
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/LongRange.java b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/LongRange.java
+new file mode 100644
+index 0000000..603f74e
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/annotation/value/LongRange.java
+@@ -0,0 +1,10 @@
++package net.montoyo.wd.config.annoconfg.annotation.value;
++
++import java.lang.annotation.Retention;
++import java.lang.annotation.RetentionPolicy;
++
++@Retention(RetentionPolicy.RUNTIME)
++public @interface LongRange {
++	long minV();
++	long maxV();
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/handle/UnsafeHandle.java b/src/main/java/net/montoyo/wd/config/annoconfg/handle/UnsafeHandle.java
+new file mode 100644
+index 0000000..ab0c8eb
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/handle/UnsafeHandle.java
+@@ -0,0 +1,86 @@
++package net.montoyo.wd.config.annoconfg.handle;
++
++import net.montoyo.wd.config.annoconfg.util.EnumType;
++import sun.misc.Unsafe;
++
++import java.lang.reflect.Field;
++import java.util.function.Consumer;
++import java.util.function.Supplier;
++
++public class UnsafeHandle {
++	private static final Unsafe theUnsafe;
++	
++	static {
++		try {
++			Field f = Unsafe.class.getDeclaredField("theUnsafe");
++			f.setAccessible(true);
++			theUnsafe = (Unsafe) f.get(null);
++		} catch (Throwable ignored) {
++			throw new RuntimeException("AnnoConfg: Failed to acquire an instance of the unsafe.");
++		}
++	}
++	
++	private final long offset;
++	
++	private final Consumer<Object> uploader;
++	private final Supplier<Object> getter;
++	
++	public UnsafeHandle(Field f) {
++		this(null, f);
++	}
++	
++	public UnsafeHandle(Object relative, Field f) {
++		offset = theUnsafe.staticFieldOffset(f);
++		if (relative == null) relative = theUnsafe.staticFieldBase(f);
++		Object finalRelative = relative;
++		if (f.getType().isPrimitive()) {
++			switch (EnumType.forClass(f.getType())) {
++				case BYTE -> {
++					uploader = (v) -> theUnsafe.putByte(finalRelative, offset, (byte) v);
++					getter = () -> theUnsafe.getByte(finalRelative, offset);
++				}
++				case SHORT -> {
++					uploader = (v) -> theUnsafe.putShort(finalRelative, offset, (short) v);
++					getter = () -> theUnsafe.getShort(finalRelative, offset);
++				}
++				case INT -> {
++					uploader = (v) -> theUnsafe.putInt(finalRelative, offset, (int) v);
++					getter = () -> theUnsafe.getInt(finalRelative, offset);
++				}
++				case LONG -> {
++					uploader = (v) -> theUnsafe.putLong(finalRelative, offset, (long) v);
++					getter = () -> theUnsafe.getLong(finalRelative, offset);
++				}
++				case FLOAT -> {
++					uploader = (v) -> theUnsafe.putFloat(finalRelative, offset, (float) v);
++					getter = () -> theUnsafe.getFloat(finalRelative, offset);
++				}
++				case DOUBLE -> {
++					uploader = (v) -> theUnsafe.putDouble(finalRelative, offset, (double) v);
++					getter = () -> theUnsafe.getDouble(finalRelative, offset);
++				}
++				case BOOLEAN -> {
++					uploader = (v) -> theUnsafe.putBoolean(finalRelative, offset, (boolean) v);
++					getter = () -> theUnsafe.getBoolean(finalRelative, offset);
++				}
++				default -> {
++					// TODO: check that I have all primitives?
++					uploader = null;
++					getter = () -> null;
++				}
++			}
++		} else {
++			uploader = (v) -> theUnsafe.putObject(finalRelative, offset, v);
++			getter = () -> theUnsafe.getObject(finalRelative, offset);
++		}
++	}
++	
++	public void set(Object o) {
++		uploader.accept(o);
++//		System.out.println(getter.get());
++	}
++	
++	public Object get() {
++		return getter.get();
++	}
++}
+diff --git a/src/main/java/net/montoyo/wd/config/annoconfg/util/EnumType.java b/src/main/java/net/montoyo/wd/config/annoconfg/util/EnumType.java
+new file mode 100644
+index 0000000..f121948
+--- /dev/null
++++ b/src/main/java/net/montoyo/wd/config/annoconfg/util/EnumType.java
+@@ -0,0 +1,25 @@
++package net.montoyo.wd.config.annoconfg.util;
++
++public enum EnumType {
++	BYTE(byte.class),
++	SHORT(short.class),
++	INT(int.class),
++	LONG(long.class),
++	FLOAT(float.class),
++	DOUBLE(double.class),
++	BOOLEAN(boolean.class),
++	OTHER(Object.class),
++	;
++	
++	Class<?> clazz;
++	
++	EnumType(Class<?> clazz) {
++		this.clazz = clazz;
++	}
++	
++	public static EnumType forClass(Class<?> clazz) {
++		for (EnumType value : EnumType.values())
++			if (value.clazz.equals(clazz)) return value;
++		return OTHER;
++	}
++}
+diff --git a/src/main/java/net/montoyo/wd/entity/ScreenData.java b/src/main/java/net/montoyo/wd/entity/ScreenData.java
+index 14d4051..16e760b 100644
+--- a/src/main/java/net/montoyo/wd/entity/ScreenData.java
++++ b/src/main/java/net/montoyo/wd/entity/ScreenData.java
+@@ -255,7 +255,10 @@ public class ScreenData {
+     }
+ 
+     public void createBrowser(ScreenBlockEntity be, boolean doAnim) {
+-        if (WebDisplays.PROXY instanceof ClientProxy) {
++        // LosResidentes: si Rinku aún no ha arrancado (o descarga Chromium), no crear el navegador.
++        // Se deja en null y ScreenRenderer lo reintenta cada frame. Sin esto, entrar a un servidor
++        // con una pantalla cerca desconecta al jugador ("Rinku was never initialized").
++        if (WebDisplays.PROXY instanceof ClientProxy && Rinku.isInitialized()) {
+             browser = WDBrowser.createBrowser(WebDisplays.applyBlacklist(url != null ? url : "https://www.google.com"), false);
+ 
+             // set screen
+diff --git a/src/main/resources/META-INF/neoforge.mods.toml b/src/main/resources/META-INF/neoforge.mods.toml
+index 0f61c09..be453e5 100644
+--- a/src/main/resources/META-INF/neoforge.mods.toml
++++ b/src/main/resources/META-INF/neoforge.mods.toml
+@@ -32,7 +32,7 @@ modId="rinku"
+ type="required"
+ versionRange="[3.0.0,)"
+ ordering="NONE"
+-side="BOTH"
++side="CLIENT"
+ 
+ # Optional — only used for the Create-contraption rendering fix in ScreenRenderer/CreateCompat.
+ # WebDisplays works completely normally with this mod absent.

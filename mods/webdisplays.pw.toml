@@ -1,0 +1,8 @@
+name = "webdisplays"
+filename = "webdisplays-2.6.1-losresidentes.jar"
+side = "both"
+
+[download]
+url = "https://github.com/ComplicatedCraft/LosResidentesPack/releases/download/mod-webdisplays-2.6.1/webdisplays-2.6.1-losresidentes.jar"
+hash-format = "sha256"
+hash = "5704895d1eeb2a257f1d3a93bd6d86105f6fce01f3037c57b4812c2cde2e4146"
