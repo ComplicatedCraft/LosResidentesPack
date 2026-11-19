@@ -319,8 +319,8 @@ hash = "77e3c81c00c0a4c61aedea5e57760dac58f181788d670012e66f60614365def3"
 metafile = true
 
 [[files]]
-file = "mods/skinchanger.pw.toml"
-hash = "698363af44b0437be16554944959ebec3a841683e40db029bfcb034ad14ba6cc"
+file = "mods/skinrestorer.pw.toml"
+hash = "2372d0016f2528eefbebf06878ee671779d3c684363c7b3d7c85ac1c2c1a1b4e"
 metafile = true
 
 [[files]]

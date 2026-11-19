@@ -101,6 +101,12 @@ El servidor funciona en modo offline con **authlogic**, que protege los nombres:
 - Si al entrar sale **"Security Warning: Server Key Changed"**, el servidor se ha reinstalado. Pregunta a un admin si es así y, si lo es, borra el archivo `authlogic/client_servers.json` de tu instancia y vuelve a entrar (tu contraseña no se pierde, está en otro archivo).
 - **No compartas la carpeta `authlogic/`** de tu instancia: es tu llave.
 
+## Skins
+
+**SkinRestorer** pone sola la skin y la capa de los premium, sacándolas de Mojang al entrar (también en un mundo individual).
+Para cambiarla: `/skin set mojang <nombre>` (la de otra cuenta premium), `/skin set web slim "<url>"` o
+`/skin set web classic "<url>"` (una imagen; la URL entre comillas) y `/skin clear` para quitarla.
+
 ## Servidores detrás de Cloudflare Tunnel
 
 El pack incluye **Modflared**: si el servidor está publicado con un Cloudflare Tunnel (por ejemplo `mc.tudominio.com`), basta con añadirlo como un servidor normal. No hay que instalar nada más.
@@ -370,7 +376,7 @@ Para publicar los zips y el `.mrpack` nuevos: `git tag v1.0.2 && git push --tags
 
 **Shaders con Create Aeronautics:** Iris Flywheel Compat, Iris Veil Compat y Aeronautics Hot Air Fix hacen que barcos, alas y globos se vean bien con shaders.
 
-**Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel. authlogic (los dos lados) para el modo offline con premium automáticos y no premium con contraseña de una sola vez.
+**Conexión:** Modflared (cliente) para entrar a servidores detrás de Cloudflare Tunnel. authlogic (los dos lados) para el modo offline con premium automáticos y no premium con contraseña de una sola vez. SkinRestorer (sustituye a SkinChanger, que sacaba las skins de crafatar y mineskin y a algunos premium les ponía la de Steve) pide las skins directamente a Mojang.
 
 **Vanilla Backport** y **Tiny Takeover Backport** (los dos lados): traen contenido de versiones nuevas (mobs, bloques, crías rediseñadas, Golden Dandelion, etiquetas crafteables). Se configuran desde el menú de mods. Tiny Takeover necesita YACL también en el servidor, aunque Modrinth diga que es solo de cliente.
 
