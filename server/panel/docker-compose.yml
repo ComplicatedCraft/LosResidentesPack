@@ -9,6 +9,9 @@ services:
     image: registry.gitlab.com/crafty-controller/crafty-4:latest
     container_name: crafty
     restart: unless-stopped
+    # Al apagar el PC, Crafty manda `stop` al servidor y espera a que guarde. Docker solo da 10 s
+    # por defecto; 80 s caben en los 90 s que systemd le da a Docker para cerrar.
+    stop_grace_period: 80s
     environment:
       - TZ=Europe/Madrid
     ports:
