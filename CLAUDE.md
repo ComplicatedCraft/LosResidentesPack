@@ -165,7 +165,14 @@ Lo de "carga sin errores" no basta. El bug de los shaders no daba ningún error 
 - **RAM:** el PC de pruebas tiene 14 GB. Servidor con 6 GB más cliente con 3 GB, más procesos colgados, lo llevaron
   a quedarse sin memoria y la sesión se cortó. En pruebas pon el servidor a `-Xmx3G` en `user_jvm_args.txt`, nunca
   tengas dos clientes a la vez y mata por PID el cliente, el servidor y el `Xvfb` antes de lanzar otro.
-- Nunca uses `pkill -f <patrón>` si el patrón aparece en tu propia línea de comandos, porque mata tu shell.
+  El usuario suele tener el navegador abierto: servidor más cliente a la vez llenaron la RAM y el OOM killer le cerró
+  Chromium. **Lanza siempre cada Java con un tope**, para que si se pasa muera lo tuyo y no lo del usuario:
+  `systemd-run --user --scope -q -p MemoryMax=<n>M -p MemorySwapMax=0 <comando>`. Mira antes `free -m`
+  (columna "disponible"): el cliente con todo el pack necesita más de 3,4 GB, y el servidor arranca con
+  `-Xmx1800M` dentro de 2,6 GB. Si no caben los dos, prueba en un mundo individual (`portablemc ... --join-world <mundo>`,
+  copiando el `world` del servidor a `saves/`), que ejecuta el mismo código de servidor. Al acabar,
+  comprueba con `pgrep -a java` que no queda ningún Java tuyo vivo.
+- Nunca uses `pkill -f <patrón>` (ni `pgrep -f` + `kill`) si el patrón aparece en tu propia línea de comandos, porque mata tu shell.
   Mata por PID.
 - Una carpeta de cliente nueva enseña la pantalla de accesibilidad y no entra sola al servidor.
   El `options.txt` del pack lo evita con `onboardAccessibility:false` y `version:3955`.
