@@ -12,7 +12,7 @@ fetch() {  # fetch <url> [archivo]
   if command -v curl >/dev/null 2>&1; then
     if [ -n "$2" ]; then curl -fsSL -o "$2" "$1"; else curl -fsSL "$1"; fi
   else
-    python3 -c 'import sys,urllib.request as u; d=u.urlopen(sys.argv[1]).read(); (open(sys.argv[2],"wb").write(d) if len(sys.argv)>2 else sys.stdout.buffer.write(d))' "$@"
+    python3 -c 'import sys,urllib.request as u; d=u.urlopen(u.Request(sys.argv[1],headers={"User-Agent":"LosResidentes-start.sh"})).read(); (open(sys.argv[2],"wb").write(d) if len(sys.argv)>2 else sys.stdout.buffer.write(d))' "$@"
   fi
 }
 
