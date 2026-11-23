@@ -127,15 +127,16 @@ El pack incluye **Modflared**: si el servidor está publicado con un Cloudflare 
 
 El servidor necesita **Java 21** y unos **6 GB de RAM** solo para el juego. Los mods que son solo de cliente (shaders, zoom, etc.) no se instalan en el servidor.
 
-## Opción recomendada: Docker + panel web + SFTP + backups (Linux)
+## Opción recomendada: Docker + backups + SFTP (Linux)
 
 Pensada para dejar el servidor en un ordenador que no es tuyo (por ejemplo un Linux Mint con una cuenta que ya existe). Todo vive en contenedores dentro de `~/losresidentes`: no se instala Java ni nada más en el sistema, aparte de Docker, y se borra entero con una carpeta.
 
 | Qué | Dónde | Para qué |
 |---|---|---|
-| **Crafty Controller** | `https://<ip>:8443` | Panel web: consola, arrancar y parar, editor de archivos, usuarios, tareas programadas y **backups** |
-| **SFTP** | `sftp://<ip>:2222` | Subir y bajar archivos con FileZilla o WinSCP (es el "FTP" de toda la vida, pero cifrado). Solo ve los servidores, los backups y la carpeta de importar, no el resto del ordenador |
-| **Tailscale** (opcional) | | Entrar al panel y al SFTP desde fuera de casa **sin abrirlos a internet** |
+| **Servidor** ([itzg/minecraft-server](https://docker-minecraft-server.readthedocs.io)) | `<ip>:25565` | Arranca solo con el ordenador, se reinicia si se cae y **actualiza los mods en cada arranque**. Al apagar, guarda el mundo antes de cerrar |
+| **Backups** ([itzg/mc-backup](https://github.com/itzg/docker-mc-backup)) | `~/losresidentes/backups` | Una copia del mundo cada 6 horas. Borra las de más de 3 días |
+| **SFTP** | `sftp://<ip>:2222` | Subir y bajar archivos con FileZilla o WinSCP (es el "FTP" de toda la vida, pero cifrado). Solo ve la carpeta del servidor y los backups, no el resto del ordenador |
+| **Tailscale** (opcional) | | Entrar al SFTP desde fuera de casa **sin abrirlo a internet** |
 
 ### 1. Instalar
 
@@ -150,41 +151,50 @@ El script hace todo esto:
 - Instala Docker desde los paquetes de Mint.
 - Descarga el `docker-compose.yml`.
 - Genera la contraseña del SFTP (se guarda en `~/losresidentes/.env`).
-- Arranca los contenedores.
+- Arranca los contenedores. La primera vez el servidor descarga NeoForge y los mods (tarda unos minutos).
 - Te enseña las direcciones y contraseñas.
 - Pregunta si quieres instalar Tailscale.
 
-Los contenedores arrancan solos cuando se enciende el ordenador.
+El servidor está listo cuando `sudo docker compose logs -f minecraft` muestra `Done (`. El mundo, los mods y las configs quedan en `~/losresidentes/data`. Para cambiar `server.properties`, edítalo ahí (o por SFTP, carpeta `servidor`) y reinicia. La RAM se cambia en `MEMORY` del `docker-compose.yml`.
 
-### 2. Crear el servidor en el panel
+### 2. Comandos
 
-1. Entra en `https://<ip>:8443`. El navegador avisará del certificado: es autofirmado, acéptalo. Inicia sesión con `admin` y la contraseña que mostró el instalador, y **cámbiala**.
-2. **Create New Server → Minecraft Java → pestaña Import Server → Zip**. Elige `LosResidentes-Server.zip`, que el instalador ya dejó en la carpeta de importar (si no aparece, súbelo desde tu PC). En *Server JAR* pon `start.sh` y en el puerto `25565`. La RAM de ese formulario da igual.
-3. En el servidor nuevo, ve a **Config** y cambia **Server Execution Command** a:
-   ```
-   sh start.sh
-   ```
-   Marca también **Auto Start** (que arranque con el ordenador) y **Crash Detection** (que se reinicie si se cae). Guarda.
-4. Dale a **Start**. La primera vez descarga NeoForge y los mods (tarda) y se para pidiendo la EULA: en **Files** abre `eula.txt`, pon `eula=true` y arranca de nuevo.
-5. En **Files**, ajusta `server.properties` (ver *Ajustes importantes*) y la RAM en `user_jvm_args.txt`.
+```sh
+cd ~/losresidentes
+sudo docker compose ps                          # ¿está todo arrancado?
+sudo docker compose logs -f minecraft           # ver el log (Ctrl+C para salir; el servidor sigue)
+sudo docker exec minecraft rcon-cli say hola    # mandar un comando al servidor
+sudo docker compose restart minecraft           # reiniciar (y actualizar los mods)
+sudo docker attach minecraft                    # consola interactiva (salir con Ctrl+P y Ctrl+Q, NO Ctrl+C)
+sudo docker compose pull && sudo docker compose up -d   # actualizar las imágenes de Docker
+```
 
-A partir de aquí, **cada vez que el servidor arranca se actualizan solos los mods** desde GitHub.
+Para reiniciar todos los días a una hora fija, añade con `crontab -e`:
+
+```
+0 6 * * * cd ~/losresidentes && sudo docker compose restart minecraft
+```
+
+(`sudo` en cron solo funciona si la cuenta está en el grupo `docker`, sin `sudo`: `sudo usermod -aG docker $USER` y vuelve a entrar.)
 
 ### 3. Backups
 
-En el servidor, pestaña **Backups**:
+Se guardan en `~/losresidentes/backups` como `world-<fecha>.tar.gz`, cada 6 horas. Antes de cada copia se pide al servidor que guarde. Los `.jar` de los mods no entran: packwiz los vuelve a bajar. La frecuencia (`BACKUP_INTERVAL`) y los días que se guardan (`PRUNE_BACKUPS_DAYS`) se cambian en el `docker-compose.yml`.
 
-1. Pulsa el engranaje y pon en **Max Backups** cuántos guardar, por ejemplo `14`. Los más antiguos se borran solos.
-2. Ve a **Schedules → Create New Schedule**: acción **Backup Server**, cada **1 día** a una hora tranquila, por ejemplo las 05:00.
-3. Si quieres, añade otra tarea **Restart Server** diaria, unos minutos después del backup.
+Para restaurar una:
 
-Los backups se guardan en `~/losresidentes/crafty/backups`. Se pueden bajar desde el panel o por SFTP (carpeta `backups`). Para restaurar uno, usa **Backups → Restore** en el panel.
+```sh
+cd ~/losresidentes
+sudo docker compose stop minecraft
+mv data data.viejo && mkdir data && tar -xzf backups/<copia>.tar.gz -C data
+sudo docker compose start minecraft      # vuelve a bajar NeoForge y los mods
+```
 
 > Un backup en el mismo disco no te protege si el disco muere. De vez en cuando bájate el último por SFTP, o activa la copia a Google Drive de abajo.
 
 #### Copia a Google Drive (opcional)
 
-Un contenedor `rclone` sube a Drive **solo el último backup**, como un único archivo `LosResidentes/ultimo-backup.zip` que se sustituye cada vez. Cada hora mira si Crafty ha hecho uno nuevo (ignora los que llevan menos de 5 minutos, por si siguen escribiéndose).
+Un contenedor `rclone` sube a Drive **solo el último backup**, como un único archivo `LosResidentes/ultimo-backup.tar.gz` que se sustituye cada vez. Cada hora mira si hay uno nuevo (ignora los que llevan menos de 5 minutos, por si siguen escribiéndose).
 
 1. En **tu ordenador** (el servidor no tiene navegador), instala [rclone](https://rclone.org/install/) y ejecuta `rclone authorize "drive"`. Se abre el navegador, entras con la cuenta de Google y en la terminal sale un token `{"access_token":...}`. Cópialo.
 2. En el servidor, crea `~/losresidentes/rclone/rclone.conf` con esto (pega tu token):
@@ -200,19 +210,19 @@ Un contenedor `rclone` sube a Drive **solo el último backup**, como un único a
 4. Comprueba con `sudo docker logs rclone`: debe salir "Subiendo ..." y "Subido.". Si fallara, se reintenta a la hora siguiente.
 
 - La carpeta de destino se cambia con `DRIVE_DEST=drive:OtraCarpeta` en el `.env`.
-- Solo copia el último: en Drive no hay histórico. Si quieres más copias, deja también las de Crafty (Max Backups).
+- Solo copia el último: en Drive no hay histórico. El resto se queda en `backups/` del servidor.
 - El token de Google puede caducar si lo dejas mucho tiempo sin usar o si el proyecto de rclone queda en modo de pruebas. Si deja de subir, repite el paso 1 y 2. Para evitarlo, crea tu propio *client ID* en Google Cloud y añade `client_id` y `client_secret` al `rclone.conf`.
 
 ### 4. Acceso desde fuera
 
 - **Jugadores:** en el router del dueño hay que redirigir **25565 TCP y UDP** a este ordenador. Si no tienes acceso al router, usa [playit.gg](https://playit.gg), que hace de túnel y admite TCP y UDP.
-- **Panel y SFTP:** **no** los abras en el router. Instala Tailscale en ese ordenador (el instalador lo ofrece) y en el tuyo, con la misma cuenta. Así entras a `https://<ip-tailscale>:8443` y `sftp://<ip-tailscale>:2222` desde cualquier sitio, cifrado y sin exponer nada.
+- **SFTP:** **no** lo abras en el router. Instala Tailscale en ese ordenador (el instalador lo ofrece) y en el tuyo, con la misma cuenta. Así entras a `sftp://<ip-tailscale>:2222` desde cualquier sitio, cifrado y sin exponer nada.
 - **BlueMap:** el puerto 8100 sí puedes abrirlo si quieres que los jugadores vean el mapa web. Ábrelo junto con el **3876** (Create Track Map), que es de donde el mapa saca los trenes.
 - **Alternativa sin abrir ningún puerto:** Cloudflare Tunnel (apartado siguiente).
 
 ### 5. Cloudflare Tunnel (opcional, sin abrir puertos)
 
-Si tienes un dominio en Cloudflare, el túnel publica el panel, el juego y el mapa con nombres como `panel.tudominio.com` **sin tocar el router**. El contenedor `cloudflared` abre la conexión hacia Cloudflare desde dentro de la red.
+Si tienes un dominio en Cloudflare, el túnel publica el juego y el mapa con nombres como `mc.tudominio.com` **sin tocar el router**. El contenedor `cloudflared` abre la conexión hacia Cloudflare desde dentro de la red.
 
 **1. Crear el túnel.** En [Cloudflare Zero Trust](https://one.dash.cloudflare.com) ve a **Networks → Tunnels → Create a tunnel → Cloudflared**, ponle un nombre y copia el **token**: es la cadena larga que aparece en el comando de instalación, después de `--token`.
 
@@ -229,14 +239,11 @@ y ejecuta `cd ~/losresidentes && sudo docker compose up -d`.
 
 | Hostname | Service | Notas |
 |---|---|---|
-| `panel.tudominio.com` | `https://crafty:8443` | En *Additional settings → TLS* activa **No TLS Verify** (Crafty usa un certificado autofirmado) |
-| `mc.tudominio.com` | `tcp://crafty:25565` | El juego |
-| `mapa.tudominio.com` | `http://crafty:8100` | BlueMap (opcional) |
-| `mapa.tudominio.com`, *Path* `api/.*` | `http://crafty:3876` | Trenes de Create en BlueMap. Esta ruta tiene que ir **encima** de la anterior en la lista |
+| `mc.tudominio.com` | `tcp://minecraft:25565` | El juego |
+| `mapa.tudominio.com` | `http://minecraft:8100` | BlueMap (opcional) |
+| `mapa.tudominio.com`, *Path* `api/.*` | `http://minecraft:3876` | Trenes de Create en BlueMap. Esta ruta tiene que ir **encima** de la anterior en la lista |
 
-**4. Proteger el panel (muy recomendable).** En **Access → Applications → Add an application → Self-hosted**, pon `panel.tudominio.com` y una política que solo deje entrar a tu email. Así, antes de llegar al login de Crafty, Cloudflare pide un código que te llega al correo.
-
-**5. Avisar a Modflared.** En el DNS de tu dominio, crea un registro **TXT** con nombre `mc` y contenido `cloudflared-use-tunnel`.
+**4. Avisar a Modflared.** En el DNS de tu dominio, crea un registro **TXT** con nombre `mc` y contenido `cloudflared-use-tunnel`.
 
 **Guía detallada:** [docs/modflared.md](docs/modflared.md).
 
@@ -246,19 +253,23 @@ y ejecuta `cd ~/losresidentes && sudo docker compose up -d`.
 
 - Solo pasa TCP. El UDP de Sable no va por el túnel, así que los barcos y aviones de Aeronautics se sincronizan por TCP, con algo más de latencia.
 - Todo el tráfico pasa por Cloudflare, así que el ping puede ser algo mayor que con el puerto abierto.
-- Si puedes abrir el 25565 en el router, para jugar es mejor. El túnel brilla para el panel y el mapa.
+- Si puedes abrir el 25565 en el router, para jugar es mejor. El túnel brilla para el mapa.
 - Modflared avisa de que "no está probado del todo". Si diera problemas, los jugadores pueden entrar por la IP con el puerto abierto, por playit.gg o por Tailscale.
 - El SFTP no pasa por el túnel: usa Tailscale para eso.
 
-### Comandos útiles (en el ordenador del servidor)
+### Si venías de Crafty
+
+Los túneles con rutas a `crafty:...` siguen funcionando (el contenedor responde también a ese nombre). Para pasar una instalación con Crafty a esta:
 
 ```sh
-cd ~/losresidentes
-sudo docker compose ps               # ¿está todo arrancado?
-sudo docker compose logs -f crafty   # ver el log del panel
-sudo docker compose pull && sudo docker compose up -d   # actualizar Crafty y SFTP
-sudo cat crafty/config/default-creds.txt                # contraseña inicial del panel
+cd ~/losresidentes && sudo docker compose down
+mv crafty/servers/<uuid> data          # el único directorio que hay en crafty/servers
+mkdir -p backups && sudo chown -R 1000:1000 data backups
+curl -fsSL -o docker-compose.yml https://losresidentespack.pages.dev/server/panel/docker-compose.yml
+sudo docker compose up -d --remove-orphans
 ```
+
+Borra la ruta del panel en Cloudflare. Cuando todo vaya bien, borra `crafty/`.
 
 ## Opción 1: script de arranque (Windows, Linux y macOS)
 

@@ -28,9 +28,9 @@ En [Cloudflare Zero Trust](https://one.dash.cloudflare.com): **Networks → Tunn
 | Subdomain | `mc` |
 | Domain | `tudominio.com` |
 | Service → Type | `TCP` |
-| Service → URL | `crafty:25565` |
+| Service → URL | `minecraft:25565` |
 
-> `crafty` es el nombre del contenedor del panel dentro de Docker. Si no usas el stack del panel y `cloudflared` corre directamente en el ordenador, pon `localhost:25565`.
+> `minecraft` es el nombre del contenedor del servidor dentro de Docker (los túneles antiguos con `crafty:25565` siguen valiendo). Si no usas el stack de Docker y `cloudflared` corre directamente en el ordenador, pon `localhost:25565`.
 
 Al guardar, Cloudflare crea solo el registro DNS `mc` (un CNAME hacia `<id-del-túnel>.cfargotunnel.com`).
 

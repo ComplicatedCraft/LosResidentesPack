@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Servidor de Los Residentes (Linux, macOS y paneles como Crafty).
+# Servidor de Los Residentes (Linux, macOS y paneles).
 # Ponlo en una carpeta vacía y ejecútalo:   sh start.sh
 # Cada arranque instala/actualiza NeoForge y los mods desde GitHub y luego arranca el servidor.
 # Java: usa $JAVA si está definido; si no, busca un Java 21; si no, el `java` del sistema.
@@ -7,7 +7,7 @@ set -e
 cd "$(dirname "$0")"
 PACK=https://losresidentespack.pages.dev/pack.toml
 
-# Descargar con curl, o con python3 si no hay curl (p. ej. dentro de Crafty)
+# Descargar con curl, o con python3 si no hay curl (p. ej. dentro de algunos paneles)
 fetch() {  # fetch <url> [archivo]
   if command -v curl >/dev/null 2>&1; then
     if [ -n "$2" ]; then curl -fsSL -o "$2" "$1"; else curl -fsSL "$1"; fi

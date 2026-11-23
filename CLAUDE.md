@@ -17,7 +17,7 @@ Responde siempre en español.
 | `prism/` | Instancia de Prism (la Action la empaqueta en el zip) |
 | `server/start.sh`, `start.bat` | Arranque universal del servidor: instala o actualiza NeoForge y los mods, y arranca |
 | `server/docker-compose.yml` | Alternativa simple con la imagen `itzg/minecraft-server` (`PACKWIZ_URL`) |
-| `server/panel/` | **Stack recomendado**: `docker-compose.yml` (Crafty + SFTP + cloudflared opcional) e `install.sh` para Linux Mint |
+| `server/panel/` | **Stack recomendado**: `docker-compose.yml` (itzg + mc-backup + SFTP + cloudflared y rclone opcionales) e `install.sh` para Linux Mint |
 | `docs/modflared.md` | Guía de Cloudflare Tunnel y Modflared (admin y jugadores) |
 | `tools/depcheck.py` | Comprueba las dependencias de una carpeta de mods instalada |
 | `modificados/` | Mods y addons que hemos modificado o portado nosotros, uno por carpeta (ver "Modificar un mod") |
@@ -34,22 +34,24 @@ todo vive en `~/losresidentes`, dentro de contenedores, y del sistema solo se in
 
 | Pieza | Detalle |
 |---|---|
-| **Crafty Controller** (`crafty`) | Panel web en 8443 (HTTPS autofirmado). El servidor se importa desde `LosResidentes-Server.zip` y su *Execution Command* es `sh start.sh`. Los backups y reinicios se programan en Crafty |
-| **SFTP** (`atmoz/sftp`, puerto 2222) | Solo monta `crafty/servers`, `crafty/backups` (solo lectura) y `crafty/import`. **No** se da SSH a la cuenta del dueño. La contraseña está en `.env` (`SFTP_PASSWORD`) |
-| **cloudflared** (perfil `tunnel`) | Solo arranca si `.env` tiene `COMPOSE_PROFILES=tunnel` y `CF_TUNNEL_TOKEN`. Túnel gestionado desde el panel de Zero Trust: `https://crafty:8443` (No TLS Verify y Cloudflare Access), `tcp://crafty:25565` y `http://crafty:8100` |
-| **Tailscale** | Opcional, en el host. Es el acceso remoto para el panel y el SFTP. **Nunca** abrir 8443 ni 2222 en el router |
+| **minecraft** (`itzg/minecraft-server:java21`) | El servidor, en `~/losresidentes/data`. Instala NeoForge y baja los mods con `PACKWIZ_URL` en cada arranque. RAM en `MEMORY`. Consola con `docker exec minecraft rcon-cli`. Tiene el alias de red `crafty` para que sigan valiendo los túneles antiguos |
+| **backups** (`itzg/mc-backup`) | Copia `data/` (sin `.jar`) en `backups/` cada 6 h por RCON (la contraseña de RCON es `SFTP_PASSWORD`). Salen como `world-<fecha>.tar.gz` |
+| **SFTP** (`atmoz/sftp`, puerto 2222) | Solo monta `data` y `backups` (solo lectura). **No** se da SSH a la cuenta del dueño. La contraseña está en `.env` (`SFTP_PASSWORD`) |
+| **cloudflared** (perfil `tunnel`) | Solo arranca si `.env` tiene `COMPOSE_PROFILES=tunnel` y `CF_TUNNEL_TOKEN`. Rutas en Zero Trust: `tcp://minecraft:25565`, `http://minecraft:8100` y `http://minecraft:3876` |
+| **rclone** (perfil `drive`) | Sube la última copia a Google Drive como `ultimo-backup.tar.gz` |
+| **Tailscale** | Opcional, en el host. Es el acceso remoto para el SFTP. **Nunca** abrir 2222 en el router |
+
+Antes se usaba **Crafty Controller** y se quitó: se rompía al reiniciar el ordenador. No lo vuelvas a poner.
 
 Detalles que importan si tocas `start.sh` o el stack:
 
-- **Dentro de Crafty no hay `curl` ni `wget`.** `start.sh` descarga con `python3` si no hay `curl`. No le metas dependencias nuevas.
-- **El `java` por defecto de Crafty es el 25.** `start.sh` busca Java 21 (`/usr/lib/jvm/java-21-openjdk*`) y lanza
-  NeoForge directamente (`@user_jvm_args.txt @libraries/.../unix_args.txt`) en vez de con `run.sh`, que usaría el `java` del PATH.
-- **La RAM se configura en `user_jvm_args.txt`**, no en el formulario de Crafty. Ese archivo de NeoForge no
-  termina en salto de línea: añade siempre con `printf '\n...'`.
-- **Si cambia la versión de NeoForge en `pack.toml`**, `start.sh` la reinstala solo. `docker-compose.yml` (itzg)
-  lleva `NEOFORGE_VERSION` escrito a mano: actualízalo allí también.
+- **`start.sh` no se usa en producción** (es para quien monta el servidor a mano o en un panel). Puede que no haya `curl`:
+  descarga con `python3` si falta. Busca Java 21 y lanza NeoForge con `@user_jvm_args.txt` en vez de `run.sh`. Ese archivo
+  de NeoForge no termina en salto de línea: añade siempre con `printf '\n...'`.
+- **Si cambia la versión de NeoForge en `pack.toml`**, `start.sh` la reinstala solo. Los dos `docker-compose.yml`
+  (`server/` y `server/panel/`) llevan `NEOFORGE_VERSION` escrito a mano: actualízalos también.
 - **Puertos:** 25565 TCP + **UDP** (Sable), 8100 (BlueMap) y 3876 (API de Create Track Map). El túnel de Cloudflare solo pasa TCP: con túnel,
-  Sable usa TCP (más latencia en las naves). En el túnel, `mapa.<dominio>` con *Path* `api/.*` va a `http://crafty:3876`
+  Sable usa TCP (más latencia en las naves). En el túnel, `mapa.<dominio>` con *Path* `api/.*` va a `http://minecraft:3876`
   (encima de la ruta general del mapa) para que los trenes salgan en BlueMap sin CORS ni contenido mixto.
 - **Modflared** (cliente) es lo que permite a los jugadores entrar por el túnel. Necesita el TXT
   `cloudflared-use-tunnel` en el DNS del hostname del juego. Guarda sus datos en `<carpeta del juego>/modflared/`
@@ -61,7 +63,7 @@ Detalles que importan si tocas `start.sh` o el stack:
 
 - **Lo nuestro se prueba a fondo:** mods entre sí, configs del pack, `start.sh`, server + cliente entrando con capturas.
   Esas pruebas destaparon bugs reales (shaders apagados por DH, RRLS, dependencias que faltaban).
-- **Las herramientas de terceros muy usadas no se prueban de punta a punta** (Crafty, itzg, cloudflared, Tailscale,
+- **Las herramientas de terceros muy usadas no se prueban de punta a punta** (itzg, mc-backup, cloudflared, Tailscale,
   launchers). El usuario lo pidió expresamente. Basta con leer su documentación y hacer comprobaciones concretas y
   rápidas (por ejemplo "¿la imagen trae curl?").
 
